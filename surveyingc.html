@@ -7,7 +7,6 @@
     <style>
         /* --- 1. 顏色定義 --- */
         :root {
-            /* 預設：護眼模式 (燕麥米 + 莫蘭迪綠) */
             --primary-color: #6B8E7B;
             --success-color: #4A6B58;  
             --bg-color: #F4F1EA;       
@@ -18,11 +17,10 @@
             --border-color: #EBEAE4;
         }
 
-        /* 修改：一般模式改為舒適的黃色主題 */
         body.normal-mode {
-            --primary-color: #E6A23C;  /* 溫暖琥珀黃 */
+            --primary-color: #E6A23C;  /* 舒服黃色 */
             --success-color: #B88230;  
-            --bg-color: #FFF9EB;       /* 極淺鵝黃背景 */
+            --bg-color: #FFF9EB;       
             --dark-gray: #909399;
             --card-bg: #ffffff;
             --error-red: #F56C6C;      
@@ -42,7 +40,7 @@
             align-items: flex-start;
             min-height: 100vh;
             color: var(--text-main);
-            transition: background-color 0.3s ease, color 0.3s ease; 
+            transition: background-color 0.3s ease; 
         }
 
         .container { 
@@ -63,10 +61,18 @@
 
         .hidden { display: none !important; }
 
-        /* --- 3. 標題與對齊修正 (解決歪歪的問題) --- */
+        /* --- 3. 標題與按鈕對齊修正 (解決歪一邊的問題) --- */
+        #home-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* 關鍵：讓所有子元素水位置中 */
+            text-align: center;
+            width: 100%;
+        }
+
         .title-group { 
             display: flex; 
-            align-items: center; /* 確保垂直置中 */
+            align-items: center; 
             justify-content: center; 
             gap: 12px; 
             margin-bottom: 40px; 
@@ -77,14 +83,13 @@
             width: 36px; 
             height: 36px; 
             fill: var(--primary-color);
-            flex-shrink: 0; /* 防止圖案被擠壓 */
+            flex-shrink: 0;
         }
 
         h1 { 
             font-size: 22px; 
             margin: 0; 
             color: var(--text-main); 
-            line-height: 1.2;
             display: flex;
             align-items: center;
         }
@@ -93,12 +98,22 @@
             color: var(--primary-color); 
             font-weight: 900; 
             font-size: 26px; 
-            text-decoration: underline; /* 使用標準底線 */
-            text-underline-offset: 6px; /* 讓底線跟文字有舒服的距離 */
+            text-decoration: underline;
+            text-underline-offset: 6px;
             margin-right: 8px;
         }
 
-        /* --- 4. 圖片容器 --- */
+        /* 修正：按鈕外框容器 */
+        .btn-wrapper {
+            width: 85%;
+            max-width: 300px;
+            margin: 0 auto; /* 關鍵：自動置中 */
+            display: flex;
+            flex-direction: column;
+            gap: 15px; /* 按鈕之間的間距 */
+        }
+
+        /* --- 4. 元件樣式 --- */
         .q-image-container {
             text-align: center;
             margin-bottom: 20px;
@@ -107,41 +122,47 @@
             border-radius: 12px;
             border: 1px solid var(--border-color);
         }
-        .q-image-container img {
-            max-width: 100%;
-            max-height: 200px;
-            border-radius: 8px;
+        .q-image-container img { max-width: 100%; max-height: 200px; border-radius: 8px; }
+
+        .big-btn { 
+            width: 100%; /* 填滿容器 */
+            padding: 18px; 
+            font-size: 18px; 
+            font-weight: bold; 
+            border: none; 
+            border-radius: 15px; 
+            cursor: pointer; 
+            color: white; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            transition: transform 0.1s;
+        }
+        .big-btn:active { transform: scale(0.98); }
+        .start-btn { background: var(--primary-color); }
+        .bank-btn { background: var(--dark-gray); }
+
+        .back-home { 
+            width: auto; 
+            padding: 10px 25px; 
+            margin-top: 30px; 
+            border-radius: 30px; 
+            border: 2px solid var(--primary-color); 
+            background: transparent; 
+            color: var(--primary-color); 
+            font-weight: bold;
+            cursor: pointer;
         }
 
-        /* --- 5. 測驗元件樣式 --- */
-        .progress-bar { font-size: 14px; color: var(--primary-color); font-weight: 700; margin-bottom: 20px; letter-spacing: 0.5px; }
+        .progress-bar { font-size: 14px; color: var(--primary-color); font-weight: 700; margin-bottom: 20px; }
         .question-text { font-size: 19px; font-weight: 600; margin-bottom: 25px; line-height: 1.5; }
-        
         .option { 
             display: block; width: 100%; padding: 16px; margin-bottom: 12px; 
             border: 2px solid var(--border-color); border-radius: 12px; text-align: left; 
-            background: var(--card-bg); font-size: 16px; cursor: pointer;
-            transition: all 0.2s ease;
-            color: var(--text-main);
+            background: var(--card-bg); font-size: 16px; cursor: pointer; color: var(--text-main);
         }
         .option.correct { border-color: var(--primary-color); background: #FAF3E6; color: var(--success-color); font-weight: bold; }
-        body.normal-mode .option.correct { background: #FFF8E1; }
         .option.wrong { border-color: var(--error-red); color: var(--error-red); }
-
-        .big-btn { 
-            flex: 1; padding: 18px; font-size: 18px; font-weight: bold; border: none; 
-            border-radius: 15px; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; width: 100%;
-        }
-        .start-btn { background: var(--primary-color); margin-bottom: 15px; }
-        .bank-btn { background: var(--dark-gray); } 
-        #next-btn { background: var(--success-color); margin-top: 25px; }
-
-        .back-home { 
-            width: 100%; padding: 14px; margin-top: 25px; border-radius: 10px; 
-            border: 1px solid var(--dark-gray); background: transparent; color: var(--text-main); 
-            cursor: pointer; font-size: 15px; font-weight: bold;
-        }
-        .nav-group { display: flex; gap: 12px; margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -155,11 +176,12 @@
             <h1><span class="highlight-text">測量丙級</span>練習系統</h1>
         </div>
 
-        <div style="width: 85%; max-width: 300px;">
+        <div class="btn-wrapper">
             <button class="big-btn start-btn" onclick="initQuiz()">開始模擬測驗</button>
             <button class="big-btn bank-btn" onclick="showBankCategories()">題庫瀏覽模式</button>
         </div>
-        <button class="back-home" style="border-radius: 30px; border-color: var(--primary-color); color: var(--primary-color); padding: 10px 20px; width: auto;" id="theme-btn" onclick="toggleTheme()">☀️ 切換色彩主題</button>
+
+        <button class="back-home" id="theme-btn" onclick="toggleTheme()">☀️ 切換色彩主題</button>
     </div>
 
     <div id="quiz-screen" class="hidden">
@@ -171,51 +193,49 @@
             <div class="question-text" id="q-text"></div>
             <div id="q-options"></div>
         </div>
-        <button id="next-btn" class="big-btn hidden" onclick="loadNextQuestion()">下一題</button>
+        <button id="next-btn" class="big-btn hidden" style="background: var(--success-color); margin-top:20px;" onclick="loadNextQuestion()">下一題</button>
         
-        <div id="result-screen" class="hidden" style="text-align: center; padding-top: 20px;">
+        <div id="result-screen" class="hidden" style="text-align: center;">
             <div style="font-size: 60px;">🏆</div>
             <h2>測驗結束</h2>
-            <p id="score-text" style="font-size: 36px; font-weight: bold; color: var(--primary-color); margin: 15px 0;"></p>
-            <button class="big-btn start-btn" style="width:100%" onclick="initQuiz()">再測一次</button>
-            <button class="back-home" onclick="goHome()">回首頁</button>
+            <p id="score-text" style="font-size: 36px; font-weight: bold; color: var(--primary-color);"></p>
+            <button class="big-btn start-btn" onclick="initQuiz()">再測一次</button>
+            <button class="back-home" style="border-radius:10px; width:100%" onclick="goHome()">回首頁</button>
         </div>
     </div>
 
     <div id="bank-category-screen" class="hidden">
-        <h2 style="text-align:center; margin-bottom: 25px;">選擇章節</h2>
-        <div id="category-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
-        <button class="back-home" onclick="goHome()">回首頁</button>
+        <h2 style="text-align:center;">選擇章節</h2>
+        <div id="category-list" style="display:flex; flex-direction:column; gap:10px;"></div>
+        <button class="back-home" style="border-radius:10px; width:100%" onclick="goHome()">回首頁</button>
     </div>
 
     <div id="bank-view-screen" class="hidden">
         <div class="progress-bar" id="bank-progress"></div>
         <div id="bank-content"></div>
-        <div class="nav-group">
-            <button class="big-btn" style="background: var(--dark-gray);" onclick="moveBank(-1)">上一題</button>
-            <button class="big-btn" style="background: var(--success-color);" onclick="moveBank(1)">下一題</button>
+        <div style="display:flex; gap:10px; margin-top:20px;">
+            <button class="big-btn" style="background:var(--dark-gray)" onclick="moveBank(-1)">上一題</button>
+            <button class="big-btn" style="background:var(--success-color)" onclick="moveBank(1)">下一題</button>
         </div>
-        <button class="back-home" onclick="showBankCategories()">返回列表</button>
+        <button class="back-home" style="border-radius:10px; width:100%" onclick="showBankCategories()">返回列表</button>
     </div>
 </div>
 
 <script>
-    // --- 邏輯功能 ---
+    // --- 邏輯保持不變 ---
     function toggleTheme() {
-        const body = document.body;
-        body.classList.toggle('normal-mode');
-        const isNormal = body.classList.contains('normal-mode');
+        document.body.classList.toggle('normal-mode');
+        const isNormal = document.body.classList.contains('normal-mode');
         localStorage.setItem('theme', isNormal ? 'normal' : 'eye-care');
     }
 
     window.onload = () => {
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'normal') document.body.classList.add('normal-mode');
+        if (localStorage.getItem('theme') === 'normal') document.body.classList.add('normal-mode');
     };
 
     const allQuestions = [
       {
-        category: "  01：圖說識讀",
+        category: "01：基本識讀",
         question: "如下圖所示，建築圖上此符號代表",
         options: ["標高", "高帽落水頭", "直徑", "弧度"],
         answer: 1,
@@ -294,9 +314,6 @@
         }
     }
 
-    let bankPool = [];
-    let bankIdx = 0;
-
     function showBankCategories() {
         document.getElementById('home-screen').classList.add('hidden');
         document.getElementById('bank-category-screen').classList.remove('hidden');
@@ -312,6 +329,9 @@
             listDiv.appendChild(btn);
         });
     }
+
+    let bankPool = [];
+    let bankIdx = 0;
 
     function startBankView(cat) {
         bankPool = allQuestions.filter(q => q.category === cat);
