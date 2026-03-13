@@ -9,7 +9,7 @@
         :root {
             --primary-color: #6B8E7B;
             --success-color: #4A6B58;  
-            --bg-color: #F4F1EA;       
+            --bg-color: #F4F1EA;      
             --dark-gray: #A3A3A3;      
             --card-bg: #FDFDFB;        
             --error-red: #D67A7A;      
@@ -69,7 +69,7 @@
 
         .hidden { display: none !important; }
 
-        /* --- 新增：圖片樣式 --- */
+        /* 圖片樣式 */
         .q-image-container {
             text-align: center;
             margin-bottom: 20px;
@@ -199,31 +199,8 @@
 </div>
 
 <script>
-    // --- 主題切換與記憶功能 ---
-    function toggleTheme() {
-        const body = document.body;
-        body.classList.toggle('normal-mode');
-        const isNormal = body.classList.contains('normal-mode');
-        localStorage.setItem('theme', isNormal ? 'normal' : 'eye-care');
-        updateThemeBtn(isNormal);
-    }
-
-    function updateThemeBtn(isNormal) {
-        const btn = document.getElementById('theme-btn');
-        btn.innerHTML = isNormal ? "🌿 切換為護眼模式" : "☀️ 切換為一般模式";
-    }
-
-    window.onload = () => {
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'normal') {
-            document.body.classList.add('normal-mode');
-            updateThemeBtn(true);
-        } else {
-            updateThemeBtn(false);
-        }
-    };
-
-    // --- 題庫與測驗邏輯 ---
+    // --- 題庫資料 (範例) ---
+    // 請在這裡放入完整的題目，格式如下：
     const allQuestions = [
   {
     category: "  01：圖說識讀",
@@ -3698,25 +3675,62 @@
     answer: 3
   }
 ];
+
     let currentQuizPool = [];
     let currentIdx = 0;
     let score = 0;
 
+    // 洗牌函數
     function shuffle(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
+        let currentIndex = array.length, randomIndex;
+        while (currentIndex != 0) {
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+            [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
         }
         return array;
     }
 
-    function goHome() { location.reload(); }
+    // --- 主題切換 ---
+    function toggleTheme() {
+        const body = document.body;
+        body.classList.toggle('normal-mode');
+        const isNormal = body.classList.contains('normal-mode');
+        localStorage.setItem('theme', isNormal ? 'normal' : 'eye-care');
+        updateThemeBtn(isNormal);
+    }
 
+    function updateThemeBtn(isNormal) {
+        const btn = document.getElementById('theme-btn');
+        btn.innerHTML = isNormal ? "🌿 切換為護眼模式" : "☀️ 切換為一般模式";
+    }
+
+    window.onload = () => {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'normal') {
+            document.body.classList.add('normal-mode');
+            updateThemeBtn(true);
+        } else {
+            updateThemeBtn(false);
+        }
+    };
+
+    function goHome() {
+        document.getElementById('home-screen').classList.remove('hidden');
+        document.getElementById('quiz-screen').classList.add('hidden');
+        document.getElementById('bank-category-screen').classList.add('hidden');
+        document.getElementById('bank-view-screen').classList.add('hidden');
+    }
+
+    // --- 模擬測驗模式 (隨機題目、隨機選項) ---
     function initQuiz() {
+        if (allQuestions.length === 0) return alert("題庫暫無資料");
         document.getElementById('home-screen').classList.add('hidden');
         document.getElementById('result-screen').classList.add('hidden');
         document.getElementById('quiz-content').classList.remove('hidden');
         document.getElementById('quiz-screen').classList.remove('hidden');
+        
+        // 隨機選出 20 題 (若不足則取全部)
         currentQuizPool = shuffle([...allQuestions]).slice(0, 20);
         currentIdx = 0;
         score = 0;
@@ -3729,7 +3743,6 @@
         document.getElementById('q-text').innerText = q.question;
         document.getElementById('next-btn').classList.add('hidden');
         
-        // --- 新增：處理測驗中的圖片 ---
         const imgArea = document.getElementById('q-image-area');
         const imgTag = document.getElementById('q-image-src');
         if (q.image) {
@@ -3742,18 +3755,20 @@
         const optionsDiv = document.getElementById('q-options');
         optionsDiv.innerHTML = '';
 
-        const shuffledOptions = shuffle(q.options.map((opt, i) => ({
+        // 測驗模式：將選項隨機化
+        const optionObjects = q.options.map((opt, i) => ({
             text: opt,
             isCorrect: (i + 1 === q.answer)
-        })));
+        }));
+        shuffle(optionObjects);
 
-        shuffledOptions.forEach((optObj) => {
+        optionObjects.forEach((optObj) => {
             const btn = document.createElement('button');
             btn.className = 'option';
             btn.innerText = optObj.text;
             btn.onclick = () => {
                 const allBtns = optionsDiv.querySelectorAll('.option');
-                allBtns.forEach(b => b.onclick = null);
+                allBtns.forEach(b => b.onclick = null); // 防止重選
                 
                 if (optObj.isCorrect) {
                     btn.classList.add('correct');
@@ -3762,7 +3777,8 @@
                 } else {
                     btn.classList.add('wrong');
                     btn.innerText += " ❌";
-                    shuffledOptions.forEach((item, idx) => {
+                    // 顯示正確答案
+                    optionObjects.forEach((item, idx) => {
                         if (item.isCorrect) {
                             allBtns[idx].classList.add('correct');
                             allBtns[idx].innerText += " ✅";
@@ -3787,6 +3803,7 @@
         }
     }
 
+    // --- 題庫瀏覽模式 (固定順序) ---
     let bankPool = [];
     let bankIdx = 0;
 
@@ -3794,9 +3811,11 @@
         document.getElementById('home-screen').classList.add('hidden');
         document.getElementById('bank-category-screen').classList.remove('hidden');
         document.getElementById('bank-view-screen').classList.add('hidden');
+        
         const categories = [...new Set(allQuestions.map(q => q.category))];
         const listDiv = document.getElementById('category-list');
         listDiv.innerHTML = '';
+        
         categories.forEach(cat => {
             const btn = document.createElement('button');
             btn.className = 'option';
@@ -3811,6 +3830,7 @@
     }
 
     function startBankView(cat) {
+        // 題庫模式：依照原始資料順序，不洗牌
         bankPool = allQuestions.filter(q => q.category === cat);
         bankIdx = 0;
         document.getElementById('bank-category-screen').classList.add('hidden');
@@ -3823,7 +3843,6 @@
         document.getElementById('bank-progress').innerText = `${q.category} (${bankIdx + 1}/${bankPool.length})`;
         const content = document.getElementById('bank-content');
         
-        // --- 新增：處理題庫模式中的圖片 ---
         let imgHTML = '';
         if (q.image) {
             imgHTML = `<div class="q-image-container"><img src="${q.image}"></div>`;
@@ -3831,14 +3850,10 @@
         
         content.innerHTML = `${imgHTML}<div class="question-text">${q.question}</div>`;
         
-        const shuffledOptions = shuffle(q.options.map((opt, i) => ({
-            text: opt,
-            isCorrect: (i + 1 === q.answer)
-        })));
-
-        shuffledOptions.forEach((optObj) => {
-            const isAns = optObj.isCorrect;
-            content.innerHTML += `<div class="option ${isAns ? 'correct' : ''}">${optObj.text} ${isAns ? '✅' : ''}</div>`;
+        // 題庫模式：選項依照原始順序 (1, 2, 3...)
+        q.options.forEach((optText, i) => {
+            const isAns = (i + 1 === q.answer);
+            content.innerHTML += `<div class="option ${isAns ? 'correct' : ''}">${optText} ${isAns ? '✅' : ''}</div>`;
         });
     }
 
