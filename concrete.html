@@ -58,6 +58,7 @@
 
         .hidden { display: none !important; }
 
+        /* 圖片容器 */
         .q-image-container {
             text-align: center; margin-bottom: 20px;
             background: #fff; padding: 10px;
@@ -71,6 +72,7 @@
         .progress-bar { font-size: 14px; color: var(--primary-color); font-weight: 700; margin-bottom: 20px; }
         .question-text { font-size: 19px; font-weight: 600; margin-bottom: 25px; line-height: 1.5; }
         
+        /* 選項樣式：方正圓角 */
         .option { 
             display: block; width: 100%; padding: 16px; margin-bottom: 12px; 
             border: 2px solid var(--border-color); border-radius: 12px; text-align: left; 
@@ -83,6 +85,7 @@
         body.normal-mode .option.correct { background: #e7f2ff; }
         .option.wrong { border-color: var(--error-red); color: var(--error-red); }
 
+        /* 按鈕系統 */
         .nav-group { display: flex; gap: 12px; margin-top: 20px; }
         .big-btn { 
             flex: 1; padding: 18px; font-size: 18px; font-weight: bold; border: none; 
@@ -91,7 +94,17 @@
         }
         .start-btn { background: var(--primary-color); }
         .bank-btn { background: var(--dark-gray); } 
-        #next-btn { background: var(--success-color); margin-top: 25px; }
+
+        /* 「下一題」按鈕：與選項等寬，但改為膠囊型 (大圓角) */
+        #next-btn { 
+            background: var(--success-color); 
+            margin-top: 25px; 
+            border-radius: 50px; /* 改為大圓角 */
+            width: 100%;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* 增加陰影區分 */
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+        #next-btn:active { transform: scale(0.98); }
         
         .theme-btn { 
             background: transparent; border: 2px solid var(--primary-color); color: var(--primary-color); 
@@ -154,7 +167,7 @@
 </div>
 
 <script>
-    // --- 題庫資料 (5題範例) ---
+    // --- 題庫資料 (範例 5 題，邏輯已設為抽取 20 題) ---
     const allQuestions = [
   {
     category: "  01：圖說識讀",
@@ -3663,7 +3676,11 @@
         document.getElementById('result-screen').classList.add('hidden');
         document.getElementById('quiz-screen').classList.remove('hidden');
         document.getElementById('quiz-content').classList.remove('hidden');
-        currentQuizPool = shuffle([...allQuestions]).slice(0, 5);
+        
+        // 【修正重點】每次抽取 20 題 (若資料庫不足 20 則抽全部)
+        const quizCount = Math.min(allQuestions.length, 20);
+        currentQuizPool = shuffle([...allQuestions]).slice(0, quizCount);
+        
         currentIdx = 0; score = 0;
         loadQuizQuestion();
     }
@@ -3683,7 +3700,7 @@
             imgArea.classList.add('hidden');
         }
 
-        // 選項處理 (關鍵修正：先標記再打亂)
+        // 選項處理
         const optionsDiv = document.getElementById('q-options');
         optionsDiv.innerHTML = '';
         const mapped = q.options.map((text, i) => ({ text, isCorrect: (i + 1 === q.answer) }));
@@ -3695,7 +3712,7 @@
             btn.innerText = opt.text;
             btn.onclick = () => {
                 const allBtns = optionsDiv.querySelectorAll('.option');
-                allBtns.forEach(b => b.style.pointerEvents = 'none'); // 防止重複點
+                allBtns.forEach(b => b.style.pointerEvents = 'none'); 
                 if (opt.isCorrect) {
                     btn.classList.add('correct'); btn.innerText += " ✅"; score++;
                 } else {
