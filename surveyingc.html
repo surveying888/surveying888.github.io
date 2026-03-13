@@ -17,7 +17,7 @@
             --border-color: #EBEAE4;
         }
 
-        /* 一般模式 (舒服黃色主題) */
+        /* 一般模式 (舒服黃色主題) - 修改重點 2 */
         body.normal-mode {
             --primary-color: #D9A01B; /* 暖金黃 */
             --success-color: #B8860B; /* 暗金黃 */
@@ -69,6 +69,7 @@
 
         .hidden { display: none !important; }
 
+        /* 圖片樣式 */
         .q-image-container {
             text-align: center;
             margin-bottom: 20px;
@@ -83,11 +84,13 @@
             border-radius: 8px;
         }
 
+        /* 首頁樣式 */
         #home-screen { 
             display: flex;
             flex-direction: column; justify-content: center; align-items: center; min-height: 60vh; text-align: center;
         }
 
+        /* 修改重點 1：標題樣式 */
         h1 { font-size: 26px; margin-bottom: 40px; color: var(--text-main); font-weight: bold; }
         .title-highlight { 
             color: var(--primary-color); 
@@ -100,6 +103,7 @@
         .progress-bar { font-size: 14px; color: var(--primary-color); font-weight: 700; margin-bottom: 20px; letter-spacing: 0.5px; }
         .question-text { font-size: 19px; font-weight: 600; margin-bottom: 25px; line-height: 1.5; color: var(--text-main); }
         
+        /* 選項樣式 */
         .option { 
             display: block;
             width: 100%; padding: 16px; margin-bottom: 12px; 
@@ -114,6 +118,7 @@
         body.normal-mode .option.correct { background: #FFF9E6; }
         .option.wrong { border-color: var(--error-red); color: var(--error-red); }
 
+        /* 按鈕系統 */
         .nav-group { display: flex; gap: 12px; margin-top: 20px; }
         .big-btn { 
             flex: 1;
@@ -138,8 +143,16 @@
             cursor: pointer;
             transition: all 0.2s;
         }
+        .theme-btn:active { transform: scale(0.95); background: var(--border-color); }
         
-        #next-btn { background: var(--success-color); margin-top: 25px; }
+        /* 下一題按鈕：膠囊狀 (大圓角) */
+        #next-btn { 
+            background: var(--success-color); 
+            margin-top: 25px; 
+            border-radius: 50px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
         #bank-prev { background: var(--dark-gray); }
         #bank-next { background: var(--success-color); }
         
@@ -203,7 +216,7 @@
 </div>
 
 <script>
-    // --- 題庫資料 (修正：改為單層陣列，確保索引從 0 開始) ---
+    // --- 題庫資料 (範例) ---
     const allQuestions = [
   {"category": "01：基本學能", "question": "我國現時土地測量所採用之長度單位為", "options": ["公尺", "市尺", "英尺", "台尺"], "answer": 0},
   {"category": "01：基本學能", "question": "市場上房屋建築面積一般以坪為單位，一坪等於", "options": ["3.344 ㎡", "3.305 ㎡", "36 平方呎", "18 平方台尺"], "answer": 1},
@@ -1637,532 +1650,10 @@
     "question": "內政部一千分之一地形圖圖式規格表中，為下列何者之圖式尺寸？",
     "options": ["磚石橋", "木橋", "鋼筋混凝土橋", "車行吊橋"],
     "answer": 2
-  },
-  {
-    "category": "06：埋石設標",
-    "question": "測量作業中需要造標者為下列何種測量？",
-    "options": ["三角測量", "地形測量", "等高線測量", "水準測量"],
-    "answer": 0
-  },
-  {
-    "category": "06：埋石設標",
-    "question": "都市計畫樁埋設標石與原測定設樁位置應在同一垂直線上，如有誤差不得逾多少㎜？",
-    "options": ["10 ㎜", "5 ㎜", "8 ㎜", "15 ㎜"],
-    "answer": 1
-  },
-  {
-    "category": "06：埋石設標",
-    "question": "樁位測量時因地形地物阻礙，不能實地埋設者，是屬於何種樁位？",
-    "options": ["虛樁", "界樁", "中心樁", "副樁"],
-    "answer": 0
-  },
-  {
-    "category": "06：埋石設標",
-    "question": "若覘標與某控制點埋設標石之對心誤差為 10 ㎝，該點至另一控制點之邊長為 3,400m，其產生之方向誤差最大為多少角度？",
-    "options": ["6\"", "10\"", "15\"", "20\""],
-    "answer": 0
-  },
-  {
-    "category": "06：埋石設標",
-    "question": "埋設標石以何者為宜？",
-    "options": ["與地面平", "沒入地面 10 ㎝", "高出地面 10 ㎝", "可任意埋設為原則"],
-    "answer": 2
-  },
-  {
-    "category": "06：埋石設標",
-    "question": "於建築物屋頂平台設置三角點，其埋設標誌之材料以何者為宜？",
-    "options": ["石樁", "塑膠樁", "水泥樁", "金屬標"],
-    "answer": 3
-  },
-  {
-    "category": "06：埋石設標",
-    "question": "三角點標石之頂端刻有下列何種記號？",
-    "options": ["一", "十", "△", "▲"],
-    "answer": 1
-  },
-  {
-    "category": "06：埋石設標",
-    "question": "三角測量選點時，單一三角形之形狀，以何者為最佳？",
-    "options": ["鈍三角形", "銳三角形", "等邊三角形", "等腰三角形"],
-    "answer": 2
-  },
-  {
-    "category": "06：埋石設標",
-    "question": "三角點標石十字刻劃的北方，應如何辨識？",
-    "options": ["等級及點別刻字方向", "點號刻字方向", "測設機關刻字方向", "測設日期刻字方向"],
-    "answer": 1
-  },
-  {
-    "category": "06：埋石設標",
-    "question": "三角測量時，若必要架設高覘標，應考慮觀測之視線高出中間障礙物多少公尺以上？",
-    "options": ["2 公尺", "3 公尺", "4 公尺", "5 公尺"],
-    "answer": 3
-  },
-  {
-    "category": "06：埋石設標",
-    "question": "控制點經選定後，應釘設標誌，並繪製",
-    "options": ["主題圖", "綜橫斷面圖", "地勢圖", "位置略圖"],
-    "answer": 3
-  },
-  {
-    "category": "06：埋石設標",
-    "question": "若以衛星控制點作為基本控制點，點位採用不銹鋼材質時，其十字刻劃、刻字、埋設區分、規則及埋設方式等應依規定設置。下列有關規定，何者正確？",
-    "options": ["東：測設機關、中：點號、西：等級及點別", "西：測設機關、中：點號、東：等級及點別", "南：測設機關、中：點號、北：等級及點別", "北：測設機關、中：點號、南：等級及點別"],
-    "answer": 3
-  },
-  {
-    "category": "06：埋石設標",
-    "question": "基本控制點之位置經選定後，應埋設",
-    "options": ["界標", "都市計畫樁", "標竿", "標石"],
-    "answer": 3
-  },
-  {
-    "category": "06：埋石設標",
-    "question": "在永久測量標上堆積雜物，致妨礙永久測量標效用者，直轄市、縣(市)主管機關首先應令行為人",
-    "options": ["責令罰鍰", "處罰行為人", "限期恢復原狀", "訴請司法機關處理"],
-    "answer": 2
-  },
-  {
-    "category": "06：埋石設標",
-    "question": "辦理衛星定位測量選點時，儘量避免選在巨大金屬結構物、建築物或大面積水域附近，請問是為避免那一種誤差造成影響?",
-    "options": ["多路徑效應", "電離層誤差", "軌道誤差", "時錶誤差"],
-    "answer": 0
-  },
-  {
-    "category": "06：埋石設標",
-    "question": "依據內政部頒訂數值法地籍圖重測手冊規定，以衛星定位測量辦理加密控制測量選點時，點位應平均分布於全測區，至少每平方公里幾點為原則？",
-    "options": ["1 點", "2 點", "3 點", "4 點"],
-    "answer": 0
-  },
-  {
-    "category": "06：埋石設標",
-    "question": "依據內政部頒訂地籍測量實施規則規定，辦理圖根測量選點時，每一導線含起迄點之總點數，幹導線應在幾點以內?",
-    "options": ["5 點", "10 點", "15 點", "20 點"],
-    "answer": 2
-  },
-  {
-    "category": "06：埋石設標",
-    "question": "依據內政部頒訂數值法地籍圖重測手冊規定，辦理加密控制測量時，點位網形須重複觀測，請問不同時段最少基線重複觀測率為多少?",
-    "options": ["5%", "10%", "15%", "20%"],
-    "answer": 0
-  },
-  {
-    "category": "06：埋石設標",
-    "question": "依據內政部頒訂數值法地籍圖重測手冊規定，辦理加密控制測量時，點位網形須重複觀測，請問新設加密控制點測站最少重複觀測率為多少？",
-    "options": ["10%", "15%", "20%", "25%"],
-    "answer": 2
-  },
-  {
-    "category": "06：埋石設標",
-    "question": "辦理衛星測量選點時，點位透空度通常為最優先考量，但部分種類控制點則非優先考量，請問以實務經驗下列何者透空度非選點第一優先因素？",
-    "options": ["大地基準站", "一等水準點", "加密控制點", "二等基本衛星控制點"],
-    "answer": 1
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "測量儀器在搬運途中，首應注意何種事項？",
-    "options": ["防震", "防潮", "防銹", "防曬"],
-    "answer": 0
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "儲存測量儀器首應考慮何種事項？",
-    "options": ["防潮", "防風", "防震", "防曬"],
-    "answer": 0
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "經緯儀外部應",
-    "options": ["經常擦拭", "定期擦拭", "每日擦拭", "視其必要性再擦拭"],
-    "answer": 3
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "經緯儀使用完畢，在裝箱之前，先將微動螺旋轉至",
-    "options": ["壓縮彈簧至底", "放鬆彈簧至完全伸展", "居中", "隨意"],
-    "answer": 2
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "物鏡表面佈滿塵土，令：甲=「將鏡頭紙撕成兩半，並將起毛邊對齊捲起成管狀，用起毛端沾蒸餾水輕拭」；乙=「用軟毛刷子輕刷」；丙=「用軟橡膠氣吹子吹」。則清理的順序為",
-    "options": ["乙甲", "丙甲乙", "丙乙", "丙乙甲"],
-    "answer": 3
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "儀器淋雨受潮，令：甲=「用 60 瓦燈泡烘烤」；乙=「用乾的軟布擦拭鏡片以外的部分，抹去水分」；丙=「用電扇吹」，則處理的順序為",
-    "options": ["甲乙丙", "乙丙甲", "甲丙乙", "丙甲乙"],
-    "answer": 1
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "下列何者不是存放儀器的需求？",
-    "options": ["避免溫差變化太大", "防曬", "防潮且避免淹水", "儀器櫃應密不通風"],
-    "answer": 3
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "以鋼卷尺量距沾到汙水，令：甲=「用軟布沾稀的潤滑油擦拭，再用乾淨布擦掉油漬」；乙=「靜置約 30 分鐘」；丙=「用軟布抹掉卷尺上的水分」。則處理的順序為",
-    "options": ["乙甲", "丙乙甲", "甲乙", "乙丙甲"],
-    "answer": 3
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "欲帶儀器到遠方執行長期測量工作，對於儀器之檢校，令：甲=「出發前一天檢校」；乙=「出發一週以前檢校」；丙=「抵達工作地點後立即檢查」。上列何者動作為正確順序？",
-    "options": ["甲", "乙", "丙", "乙與丙"],
-    "answer": 3
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "儀器箱除了堅固、外觀鮮明之外，還需要滿足一些要求，其中何種功能最不易滿足？",
-    "options": ["吸收震動", "完全防潮", "不怕小雨", "外殼鎖扣附設保險裝置"],
-    "answer": 1
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "令：甲=「加油潤滑腳螺旋螺絲」；乙=「加油潤滑直立軸軸承」；丙=「儀器外部(鏡片除外)之保養」。屬於測量人員維護者為",
-    "options": ["甲乙丙", "甲乙", "乙丙", "甲丙"],
-    "answer": 3
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "目前的儀器箱多用塑膠製作外殼，外殼以鉸鏈連接，內襯為一體成型之泡棉。下列各項何者錯誤？",
-    "options": ["儀器箱可充當板凳", "打開儀器箱取出儀器之後，立即蓋妥儀器箱，可避免鉸鏈處塑膠斷裂", "塑膠曬太陽易碎，所以儀器箱儘量不要曬太陽", "在路邊測量時，如果欠缺警示裝置，可用儀器箱代替"],
-    "answer": 0
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "經緯儀使用完畢，在裝箱之前，先將腳螺旋轉至何種位置？",
-    "options": ["完全升高", "居中", "完全降低", "隨意"],
-    "answer": 1
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "目前的儀器箱多用塑膠製作外殼，內襯為一體成型之泡棉，假設儀器箱已打開，令：甲=「鎖住制動螺旋」；乙=「使照準架與基座之記號對齊，將經緯儀放入儀器箱中」；丙=「放鬆制動螺旋」；丁=「蓋妥箱子」。將經緯儀裝箱之正確順序為",
-    "options": ["甲乙丙丁", "乙丁甲", "丙乙甲丁", "甲乙丁"],
-    "answer": 2
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "攜帶標桿行進時，應該使尖端保持何種動作？",
-    "options": ["朝後且朝下", "朝後", "朝前", "朝前且朝上"],
-    "answer": 0
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "攜帶水準尺行進或測量扶尺時，應該保護尺面，且須注意何種動作？",
-    "options": ["不可觸摸刻劃", "不可觸摸註記之數字", "隨意", "不可觸摸刻劃及註記之數字"],
-    "answer": 3
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "下列何者不合理？",
-    "options": ["依照使用手冊之指示校正儀器", "儀器誤差較小，且能以適當方法予以消除時，可以不要校正", "以經緯儀為例，儀器校正項目較多，如果校正量較大時，通常需重複循環校正", "不論儀器誤差種類及大小，一律須送儀器廠校正"],
-    "answer": 3
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "保養儀器之原則為",
-    "options": ["送交儀器廠商保養", "使用人自行保養", "使用人施行初級保養，視需要送交儀器廠商施行高級保養", "不必保養"],
-    "answer": 2
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "各類測量儀器使用前，甲=「熟讀說明書」，乙=「瞭解組件構造與功能」，丙=「精研操作步驟與要領」，上列何種為必須事項？",
-    "options": ["甲乙丙", "甲乙", "乙丙", "甲丙"],
-    "answer": 0
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "水準尺用畢收藏應保持何種動作？",
-    "options": ["堆疊平置", "交叉斜置", "直豎", "橫枕"],
-    "answer": 3
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "攜帶水準尺行進，在叉路口轉彎時，為避免撞及他人，宜將水準尺保持",
-    "options": ["尺身朝前(縱向)扛在肩上", "垂直持尺", "尺身橫向扛在肩上", "隨意持尺"],
-    "answer": 1
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "在工廠、工地、道路測量時，下列何種事項為宜？",
-    "options": ["戴安全帽", "穿膠鞋", "穿安全背心", "視狀況選擇穿或戴安全帽、膠鞋、安全背心"],
-    "answer": 3
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "在煉鋼廠高溫鍋爐附近測量，宜使用下列何種儀器？",
-    "options": ["電子水準儀及電子經緯儀", "電子水準儀及光學經緯儀", "光學水準儀及光學經緯儀", "光學水準儀及電子經緯儀"],
-    "answer": 2
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "測量儀器自箱中取出後，應立即將儀器箱蓋妥，其目的為",
-    "options": ["可臨時作為人員的坐椅", "可作為墊高，便於觀測", "避免灰塵、雨水及枯葉等雜物飛入", "沒有作用"],
-    "answer": 2
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "測量員可調整望遠鏡之目鏡調焦螺旋，以使下列何者清晰？",
-    "options": ["測微鼓", "度盤刻劃", "十字絲", "準星"],
-    "answer": 2
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "一般自動水準儀之精度依據下列何者來區分？",
-    "options": ["望遠鏡的放大倍率", "望遠鏡的目鏡大小", "望遠鏡的長短", "望遠鏡的十字絲"],
-    "answer": 0
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "水準測量時，標尺墊之作用為",
-    "options": ["使標尺升高以便觀測", "避免標尺之磨損或沾汙", "避免標尺下陷", "使標尺水平"],
-    "answer": 2
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "影響電子測距之氣象因素最大者為",
-    "options": ["溫度", "氣壓", "濕度", "空氣中二氧化碳含量"],
-    "answer": 0
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "下列何者不屬於電子測距儀施測時的改正？",
-    "options": ["頻率偏差改正", "氣象改正", "加常數改正", "多路徑誤差改正"],
-    "answer": 3
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "木樁校正法係用以校正",
-    "options": ["電子測距儀", "經緯儀", "水準儀", "平板儀"],
-    "answer": 2
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "基本測量實施規定，辦理基本測量所使用之儀器設備應辦理校正作業且由符合資格之實驗室為之並出具校正報告，請問一般測量儀器可由下列何者辦理校正作業且出具校正報告?",
-    "options": ["國家度量衡標準實驗室", "中央研究院實驗室", "內政部國家重力實驗室", "臺灣大學實驗室"],
-    "answer": 0
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "目前辦理加密控制測量多數採用衛星定位接收儀辦理，其中 A:接收儀為高精度儀器，雨天時無法作業。B:接收儀可設定適當接收頻率(如 1、5、10、15 等秒數間隔)。C:辦理外業測量須量測儀器高。D：一般衛星定位接收儀定心定平時，天線盤設置需精確對北。上開說明那些是正確？",
-    "options": ["AB", "BC", "ACD", "BCD"],
-    "answer": 2
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "依據一等水測量作業規範規定，精密水準儀須定期適時辦理儀器校正作業，請問以下檢校時程何者為非?",
-    "options": ["外業之前 1 個月內須檢校 1 次", "外業過程中，每季須檢校 1 次", "外業過程中，儀器碰撞後須立即檢校", "外業結束後 1 個月內須檢校 1 次"],
-    "answer": 1
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "依據一等水測量測量作業規範規定，精密水準儀須定期適時辦理儀器檢查保養，A：三腳架每周保養檢查、B：每日辦理視準軸校準檢查(定樁法)、C：每周辦理補償效果檢查、D：每日圓盒氣泡檢查、E：每周溫度計電池檢查。下何者為正確？",
-    "options": ["ABCD", "ABCE", "BCD", "BCE"],
-    "answer": 3
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "等水準點埋設作業規定，新埋設之點位需等待多久時間以上方可施測？",
-    "options": ["1 周", "1 個月", "2 個月", "3 個月"],
-    "answer": 1
-  },
-  {
-    "category": "07：儀器之一般保養與維護",
-    "question": "一等水準點埋設作業規定，每一測站最大前後視距差不得超過多少?",
-    "options": ["0.5 公尺", "1 公尺", "2 公尺", "2.5 公尺"],
-    "answer": 1
-  },
-  {
-    "category": "08：測量基本準則",
-    "question": "辦理測繪業務可設置之控制點，稱為",
-    "options": ["標桿", "標尺", "覘板", "測量標"],
-    "answer": 3
-  },
-  {
-    "category": "08：測量基本準則",
-    "question": "下列何者屬於高程測量基準？",
-    "options": ["比例尺", "坐標", "平均海水面", "圖根點"],
-    "answer": 2
-  },
-  {
-    "category": "08：測量基本準則",
-    "question": "下列何種測量不屬於應用測量？",
-    "options": ["地籍測量", "基本測量", "工程測量", "都市計畫測量"],
-    "answer": 1
-  },
-  {
-    "category": "08：測量基本準則",
-    "question": "三角測量及精密導線測量所區分之等級，其主要依據為何？",
-    "options": ["精度", "用途", "測量方法", "重要性"],
-    "answer": 0
-  },
-  {
-    "category": "08：測量基本準則",
-    "question": "橫麥卡托投影屬於何種類型投影？",
-    "options": ["正形投影", "等積投影", "正方向投影", "透視投影"],
-    "answer": 0
-  },
-  {
-    "category": "08：測量基本準則",
-    "question": "台灣之高程基準係依據基隆港的潮位站何種水準面為起算標準？",
-    "options": ["最低潮位線", "低潮位線", "平均海水面", "最高潮位線"],
-    "answer": 2
-  },
-  {
-    "category": "08：測量基本準則",
-    "question": "台灣本島現行 2 度分帶橫麥卡托投影坐標系統，其中央經線之經度為何？",
-    "options": ["120°E", "121°E", "122°E", "123°E"],
-    "answer": 1
-  },
-  {
-    "category": "08：測量基本準則",
-    "question": "新國家坐標系統(TWD97 坐標系統)所採用的地球原子為何？",
-    "options": ["GRS67", "GRS80", "GRS84", "GRS97"],
-    "answer": 1
-  },
-  {
-    "category": "08：測量基本準則",
-    "question": "橫麥卡托投影之圓柱軸與地軸應互相",
-    "options": ["一致", "斜交", "正交", "無關"],
-    "answer": 2
-  },
-  {
-    "category": "08：測量基本準則",
-    "question": "電子測距之標準誤差，常以(a+b‧ppm)形式表示之，而 ppm 係表示所量距離之多少？",
-    "options": ["一萬分之一", "十萬分之一", "一百萬分之一", "一千萬分之一"],
-    "answer": 2
-  },
-  {
-    "category": "08：測量基本準則",
-    "question": "測角與量距之精度要相互配合，如量距之精度為 1/10000，則測角之精度應為",
-    "options": ["20\"", "30\"", "40\"", "50\""],
-    "answer": 0
-  },
-  {
-    "category": "08：測量基本準則",
-    "question": "地圖投影所稱之子午線收歛角，亦稱為",
-    "options": ["方向角", "磁偏角", "製圖角", "垂直角"],
-    "answer": 2
-  },
-  {
-    "category": "08：測量基本準則",
-    "question": "依大地測量之觀點，地表兩點間之最短距離為何？",
-    "options": ["直線", "圓弧", "直截線", "大地線"],
-    "answer": 3
-  },
-  {
-    "category": "08：測量基本準則",
-    "question": "台灣地區 2 度分帶橫麥卡托投影坐標系統，其中央經線之尺度比率為多少？",
-    "options": ["0.9990", "0.9999", "1.0000", "1.0005"],
-    "answer": 1
-  },
-  {
-    "category": "08：測量基本準則",
-    "question": "利用 GPS 衛星定位測量所測得的高程屬何種高程？",
-    "options": ["正高", "力高", "正常高", "橢球高"],
-    "answer": 3
-  },
-  {
-    "category": "08：測量基本準則",
-    "question": "GPS 是由那一個國家發射的軍事衛星？",
-    "options": ["台灣", "美國", "英國", "俄羅斯"],
-    "answer": 1
-  },
-  {
-    "category": "08：測量基本準則",
-    "question": "何謂 GPS？",
-    "options": ["地理資訊系統", "資訊管理系統", "全球定位系統", "重力定位系統"],
-    "answer": 2
-  },
-  {
-    "category": "08：測量基本準則",
-    "question": "辦理衛星定位測量時，所接收訊號之 GPS 衛星距離地球地心約多少公里？",
-    "options": ["10200", "20200", "26580", "36580"],
-    "answer": 1
-  },
-  {
-    "category": "08：測量基本準則",
-    "question": "GPS 衛星環繞地球運轉，一共分布在幾個軌道面?",
-    "options": ["3", "4", "5", "6"],
-    "answer": 3
-  },
-  {
-    "category": "08：測量基本準則",
-    "question": "下列何者非 GPS 所能提供的服務?",
-    "options": ["定位", "授時", "導航", "影像資訊"],
-    "answer": 3
-  },
-  {
-    "category": "08：測量基本準則",
-    "question": "GNSS 為全球導航衛星系統的英文簡稱，請問以下那一個衛星定位系統非全球性定位系統?",
-    "options": ["GPS", "GLONASS", "QZSS", "BeiDou"],
-    "answer": 2
-  },
-  {
-    "category": "08：測量基本準則",
-    "question": "全球導航衛星系統(GNSS)包含數個衛星定位系統，並由不同國家建置，請問以下何者為非?",
-    "options": ["GPS 衛星系統由美國建置", "GLONASS 衛星系統由俄羅斯建置", "Beidou 衛星系統由中國建置", "Gaileo 衛星系統由澳大利亞建置"],
-    "answer": 3
-  },
-  {
-    "category": "08：測量基本準則",
-    "question": "國內 eGNSS 網路化 RTK 是內政部國土測繪中心所提供的即時動態定位服務，請問以下何者正確？",
-    "options": ["該系統有提供公分級精度定位成果", "該系統使用者無需申請即可使用高精度定位服務", "該系統使用者僅需使用手機定位模組即可得到公分級定位精度成果", "該系統目前僅能提供 GPS 即時動態定位服務"],
-    "answer": 0
-  },
-  {
-    "category": "08：測量基本準則",
-    "question": "eGNSS Network RTK 運用到數項高端技術進行即時求解，以提供使用者公分級定位精度，請問以下何者非目前所必要之技術?",
-    "options": ["RTCM 2.x/3.x", "人工智慧(AI)", "網際網路及無線數據通訊傳輸技術", "GNSS 衛星定位技術"],
-    "answer": 1
-  },
-  {
-    "category": "08：測量基本準則",
-    "question": "使用 eGNSS 即時動態定位技術可快速獲取高精度定位成果，請問以下何者錯誤？",
-    "options": ["測量誤差及初始化時間不因距離增長而增加", "使用者無須架設區域性主站", "所有使用者皆在同一框架下進行即時定位", "外業需要 3 人(含)以上同時操作方可完成"],
-    "answer": 3
-  },
-  {
-    "category": "08：測量基本準則",
-    "question": "內政部國土測繪中心 eGNSS 即時動態定位系統可提供高精度定位服務，請問以下非系統所能提供服務？",
-    "options": ["即時性衛星動態定位服務", "衛星觀測資料後處理動態定位服務", "衛星觀測資料電子檔供應服務", "提供即時性大氣預估資訊"],
-    "answer": 3
-  },
-  {
-    "category": "08：測量基本準則",
-    "question": "進行衛星定位測量靜態基線解算時，可搭配不同衛星星曆來進行解算，請問以下何者星曆精度最高?",
-    "options": ["IGS 精密星曆", "IGR 精密星曆", "IGU 精密星曆", "BRDC 廣播星曆"],
-    "answer": 0
-  },
-  {
-    "category": "08：測量基本準則",
-    "question": "使用 GPS 衛星測量時，所得到原始單點定位成果是在那一個坐標系統之成果？",
-    "options": ["WGS84", "WGS97", "TWD97", "TWD67"],
-    "answer": 0
-  },
-  {
-    "category": "08：測量基本準則",
-    "question": "使用 GPS 衛星測量時，所得到原始高程資料是",
-    "options": ["力高", "正高", "正常高", "橢球高"],
-    "answer": 3
-  },
-  {
-    "category": "08：測量基本準則",
-    "question": "目前國內測量作業分別有中央機關及地方政府依國土測量法及相關子法規定，依權責執行各項測繪業務，請問以下何者非中央機關權責業務?",
-    "options": ["基本測量", "測量基準", "加密控制測量", "訂定坐標系統"],
-    "answer": 2
-  },
-  {
-    "category": "08：測量基本準則",
-    "question": "衛星定位測量所測量高度為橢球高(h)，與由平均海水面起算之正高(H)不同，兩者關係可由 h=H+N 來表示之。請問 N 表示",
-    "options": ["大地起伏值", "橢球起伏值", "高程基準值", "高程起伏值"],
-    "answer": 0
   }
 ];
 
-    // --- 主題切換功能 ---
+    // --- 主題切換與記憶功能 ---
     function toggleTheme() {
         const body = document.body;
         body.classList.toggle('normal-mode');
@@ -2186,7 +1677,12 @@
         }
     };
 
-    // --- 工具：洗牌演算法 ---
+    // --- 題庫與測驗邏輯  ---
+    
+    let currentQuizPool = [];
+    let currentIdx = 0;
+    let score = 0;
+
     function shuffle(array) {
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -2195,11 +1691,6 @@
         return array;
     }
 
-    // --- 測驗邏輯 ---
-    let currentQuizPool = [];
-    let currentIdx = 0;
-    let score = 0;
-
     function goHome() { location.reload(); }
 
     function initQuiz() {
@@ -2207,7 +1698,11 @@
         document.getElementById('result-screen').classList.add('hidden');
         document.getElementById('quiz-content').classList.remove('hidden');
         document.getElementById('quiz-screen').classList.remove('hidden');
-        currentQuizPool = shuffle([...allQuestions]).slice(0, 20); // 隨機抽20題
+        
+        // 每次隨機抽 20 題
+        const quizCount = Math.min(allQuestions.length, 20);
+        currentQuizPool = shuffle([...allQuestions]).slice(0, quizCount);
+        
         currentIdx = 0;
         score = 0;
         loadQuizQuestion();
@@ -2215,7 +1710,7 @@
 
     function loadQuizQuestion() {
         const q = currentQuizPool[currentIdx];
-        document.getElementById('quiz-progress').innerText = `第 ${currentIdx + 1} 題 / 共 ${currentQuizPool.length} 題`;
+        document.getElementById('quiz-progress').innerText = `題目 ${currentIdx + 1} / ${currentQuizPool.length}`;
         document.getElementById('q-text').innerText = q.question;
         document.getElementById('next-btn').classList.add('hidden');
         
@@ -2231,10 +1726,9 @@
         const optionsDiv = document.getElementById('q-options');
         optionsDiv.innerHTML = '';
 
-        // 修正：先建立帶有正確答案標記的物件陣列，再洗牌
         const mappedOptions = q.options.map((opt, i) => ({
             text: opt,
-            isCorrect: (i === q.answer)
+            isCorrect: (i + 1 === q.answer)
         }));
         const shuffledOptions = shuffle([...mappedOptions]);
 
@@ -2244,7 +1738,7 @@
             btn.innerText = optObj.text;
             btn.onclick = () => {
                 const allBtns = optionsDiv.querySelectorAll('.option');
-                allBtns.forEach(b => b.style.pointerEvents = 'none'); // 防止重複點選
+                allBtns.forEach(b => b.style.pointerEvents = 'none');
                 
                 if (optObj.isCorrect) {
                     btn.classList.add('correct');
@@ -2253,7 +1747,6 @@
                 } else {
                     btn.classList.add('wrong');
                     btn.innerText += " ❌";
-                    // 找出正確的那個顯示出來
                     shuffledOptions.forEach((item, idx) => {
                         if (item.isCorrect) {
                             allBtns[idx].classList.add('correct');
@@ -2279,7 +1772,7 @@
         }
     }
 
-    // --- 題庫瀏覽模式 ---
+    // --- 題庫瀏覽 ---
     let bankPool = [];
     let bankIdx = 0;
 
@@ -2294,7 +1787,6 @@
             const btn = document.createElement('button');
             btn.className = 'option';
             btn.style.textAlign = 'center';
-            btn.style.borderColor = 'var(--primary-color)';
             btn.innerText = cat;
             btn.onclick = () => startBankView(cat);
             listDiv.appendChild(btn);
@@ -2313,20 +1805,16 @@
         const q = bankPool[bankIdx];
         document.getElementById('bank-progress').innerText = `${q.category} (${bankIdx + 1}/${bankPool.length})`;
         const content = document.getElementById('bank-content');
-        
         let imgHTML = q.image ? `<div class="q-image-container"><img src="${q.image}"></div>` : '';
         content.innerHTML = `${imgHTML}<div class="question-text">${q.question}</div>`;
-        
         q.options.forEach((optText, i) => {
-            const isAns = (i === q.answer);
+            const isAns = (i + 1 === q.answer);
             content.innerHTML += `<div class="option ${isAns ? 'correct' : ''}">${optText} ${isAns ? '✅' : ''}</div>`;
         });
     }
 
     function moveBank(step) {
-        bankIdx += step;
-        if (bankIdx < 0) bankIdx = 0;
-        else if (bankIdx >= bankPool.length) bankIdx = bankPool.length - 1;
+        bankIdx = Math.max(0, Math.min(bankPool.length - 1, bankIdx + step));
         renderBankItem();
     }
 </script>
