@@ -9,7 +9,7 @@
         :root {
             --primary-color: #6B8E7B;
             --success-color: #4A6B58;  
-            --bg-color: #F4F1EA;      
+            --bg-color: #F4F1EA;       
             --dark-gray: #A3A3A3;      
             --card-bg: #FDFDFB;        
             --error-red: #D67A7A;      
@@ -69,6 +69,21 @@
 
         .hidden { display: none !important; }
 
+        /* --- 新增：圖片樣式 --- */
+        .q-image-container {
+            text-align: center;
+            margin-bottom: 20px;
+            background: #fff;
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .q-image-container img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+        }
+
         /* 首頁樣式 */
         #home-screen { 
             display: flex;
@@ -79,20 +94,6 @@
         .progress-bar { font-size: 14px; color: var(--primary-color); font-weight: 700; margin-bottom: 20px; letter-spacing: 0.5px; }
         .question-text { font-size: 19px; font-weight: 600; margin-bottom: 25px; line-height: 1.5; color: var(--text-main); }
         
-        /* 圖片樣式設定 */
-        .q-image-container {
-            width: 100%;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .q-image-container img {
-            max-width: 100%;
-            max-height: 250px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            border: 1px solid var(--border-color);
-        }
-
         /* 選項樣式 */
         .option { 
             display: block;
@@ -163,7 +164,9 @@
     <div id="quiz-screen" class="hidden">
         <div class="progress-bar" id="quiz-progress"></div>
         <div id="quiz-content">
-            <div id="q-image-container" class="q-image-container hidden"></div>
+            <div id="q-image-area" class="q-image-container hidden">
+                <img id="q-image-src" src="" alt="題目圖示">
+            </div>
             <div class="question-text" id="q-text"></div>
             <div id="q-options"></div>
         </div>
@@ -221,7 +224,6 @@
     };
 
     // --- 題庫與測驗邏輯 ---
-    // image 欄位範例：image: "test.png"
     const allQuestions = [
   {
     category: "  01：圖說識讀",
@@ -3696,12 +3698,10 @@
     answer: 3
   }
 ];
-
     let currentQuizPool = [];
     let currentIdx = 0;
     let score = 0;
 
-    // 洗牌函數
     function shuffle(array) {
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -3717,7 +3717,6 @@
         document.getElementById('result-screen').classList.add('hidden');
         document.getElementById('quiz-content').classList.remove('hidden');
         document.getElementById('quiz-screen').classList.remove('hidden');
-        // 隨機選題 (若總題數不足20則取全部)
         currentQuizPool = shuffle([...allQuestions]).slice(0, 20);
         currentIdx = 0;
         score = 0;
@@ -3730,20 +3729,19 @@
         document.getElementById('q-text').innerText = q.question;
         document.getElementById('next-btn').classList.add('hidden');
         
-        // --- 圖片處理邏輯 ---
-        const imgContainer = document.getElementById('q-image-container');
-        if (q.image && q.image.trim() !== "") {
-            imgContainer.innerHTML = `<img src="${q.image}" alt="題目圖片">`;
-            imgContainer.classList.remove('hidden');
+        // --- 新增：處理測驗中的圖片 ---
+        const imgArea = document.getElementById('q-image-area');
+        const imgTag = document.getElementById('q-image-src');
+        if (q.image) {
+            imgTag.src = q.image;
+            imgArea.classList.remove('hidden');
         } else {
-            imgContainer.classList.add('hidden');
-            imgContainer.innerHTML = '';
+            imgArea.classList.add('hidden');
         }
-        
+
         const optionsDiv = document.getElementById('q-options');
         optionsDiv.innerHTML = '';
 
-        // 建立包含正確資訊的選項陣列並洗牌
         const shuffledOptions = shuffle(q.options.map((opt, i) => ({
             text: opt,
             isCorrect: (i + 1 === q.answer)
@@ -3764,7 +3762,6 @@
                 } else {
                     btn.classList.add('wrong');
                     btn.innerText += " ❌";
-                    // 顯示正確答案
                     shuffledOptions.forEach((item, idx) => {
                         if (item.isCorrect) {
                             allBtns[idx].classList.add('correct');
@@ -3790,7 +3787,6 @@
         }
     }
 
-    // --- 題庫瀏覽模式 ---
     let bankPool = [];
     let bankIdx = 0;
 
@@ -3827,17 +3823,14 @@
         document.getElementById('bank-progress').innerText = `${q.category} (${bankIdx + 1}/${bankPool.length})`;
         const content = document.getElementById('bank-content');
         
-        let htmlStr = '';
-        
-        // --- 題庫圖片處理 ---
-        if (q.image && q.image.trim() !== "") {
-            htmlStr += `<div class="q-image-container"><img src="${q.image}" alt="題目圖片"></div>`;
+        // --- 新增：處理題庫模式中的圖片 ---
+        let imgHTML = '';
+        if (q.image) {
+            imgHTML = `<div class="q-image-container"><img src="${q.image}"></div>`;
         }
         
-        htmlStr += `<div class="question-text">${q.question}</div>`;
-        content.innerHTML = htmlStr;
+        content.innerHTML = `${imgHTML}<div class="question-text">${q.question}</div>`;
         
-        // 題庫模式也將選項隨機化顯示
         const shuffledOptions = shuffle(q.options.map((opt, i) => ({
             text: opt,
             isCorrect: (i + 1 === q.answer)
