@@ -233,22 +233,112 @@
 <script>
     // --- 題庫資料 (範例) ---
     const allQuestions = [
-        {
-            category: "測量基本概念",
-            question: "下列何者為精密測量距離最常用的儀器？",
-            options: ["捲尺", "全站儀 (Total Station)", "皮尺", "目測"],
-            answer: 2,
-            image: "" 
-        },
-        {
-            category: "測量基本概念",
-            question: "水準儀的主要功能是測量？",
-            options: ["角度", "高程差", "座標", "距離"],
-            answer: 2,
-            image: ""
-        }
-    ];
-
+    {
+        category: "基本學能",
+        question: "我國現時土地測量所採用之長度單位為？",
+        options: ["公尺", "市尺", "英尺", "台尺"],
+        answer: 1,
+        image: ""
+    },
+    {
+        category: "基本學能",
+        question: "市場上房屋建築面積一般以坪為單位，一坪等於？",
+        options: ["3.344 ㎡", "3.3058 ㎡", "36 平方呎", "18 平方台尺"],
+        answer: 2,
+        image: ""
+    },
+    {
+        category: "基本學能",
+        question: "目前台灣地區使用 TM 二度分帶坐標系統，下列何者不符合此坐標系統之定義？",
+        options: ["原點為中央經線與赤道交點", "中央經線尺度比率為 0.9999", "東經 121° 為中央經線", "原點之 X 坐標為 500,000 公尺"],
+        answer: 4,
+        image: ""
+    },
+    {
+        category: "基本學能",
+        question: "長 125m 寬 35m 之長方形土地一塊，面積為若干公頃？",
+        options: ["0.4375", "4.375", "43.75", "44"],
+        answer: 1,
+        image: ""
+    },
+    {
+        category: "基本學能",
+        question: "土地面積換算，下列何者錯誤？",
+        options: ["一公頃等於 10,000 平方公尺", "一公畝等於 100 平方公尺", "一公頃約等於 2,934 坪", "一甲約等於 0.9699 公頃"],
+        answer: 3,
+        image: ""
+    },
+    {
+        category: "基本學能",
+        question: "多色地圖中，水稻田使用之顏色一般為？",
+        options: ["藍色", "綠色", "紅色", "黑色"],
+        answer: 2,
+        image: ""
+    },
+    {
+        category: "基本學能",
+        question: "地球參考橢球體之長軸半徑為 a，短軸半徑為 b，則扁率為？",
+        options: ["(a+b)/a", "(a-b)/b", "(a+b)/b", "(a-b)/a"],
+        answer: 4,
+        image: ""
+    },
+    {
+        category: "基本學能",
+        question: "測繪 1/500 地形圖，兩點間距離實地為 70 公尺，在圖上長度應為？",
+        options: ["17 公分", "10 公分", "14 公分", "20 公分"],
+        answer: 3,
+        image: ""
+    },
+    {
+        category: "基本學能",
+        question: "1/2000 地圖上 10cm 之實地長為？",
+        options: ["12m", "200m", "20m", "2,000m"],
+        answer: 2,
+        image: ""
+    },
+    {
+        category: "基本學能",
+        question: "大比例尺開闊地區之細部測量常用之方法為？",
+        options: ["交會法", "縱橫線法", "半導線法", "光線法"],
+        answer: 4,
+        image: ""
+    },
+    {
+        category: "基本學能",
+        question: "測繪 1/500 地圖，測得至某地物點之距離為 40 公尺，縮繪在圖上的距離為？",
+        options: ["2 cm", "4 cm", "8 cm", "20 cm"],
+        answer: 3,
+        image: ""
+    },
+    {
+        category: "基本學能",
+        question: "1/2500 圖上距離 16.4mm，地上距離多少？",
+        options: ["25m", "16m", "41m", "40m"],
+        answer: 3,
+        image: ""
+    },
+    {
+        category: "基本學能",
+        question: "若比例尺縮小 1/3，則面積之縮小率為？",
+        options: ["1/3", "1/6", "1/9", "1/12"],
+        answer: 3,
+        image: ""
+    },
+    {
+        category: "基本學能",
+        question: "1/500 地圖圖幅大小為 30cm × 40cm，其所涵蓋之面積為？",
+        options: ["3 公頃", "4 公頃", "12 公頃", "5 公頃"],
+        answer: 1,
+        image: ""
+    },
+    {
+        category: "基本學能",
+        question: "測量工作主要測量地球表面之？",
+        options: ["地理、地系", "地系、地表", "地形、地面", "地物、地貌"],
+        answer: 4,
+        image: ""
+    }
+];
     let currentQuizPool = [];
     let currentIdx = 0;
     let score = 0;
