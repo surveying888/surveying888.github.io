@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>混凝土丙級練習系統</title>
+    <title>混凝土丙級測驗練習系統</title>
     <style>
         /* 預設：護眼模式 (燕麥米 + 莫蘭迪綠) */
         :root {
             --primary-color: #6B8E7B;
             --success-color: #4A6B58;  
-            --bg-color: #F4F1EA;      
+            --bg-color: #F4F1EA;       
             --dark-gray: #A3A3A3;      
             --card-bg: #FDFDFB;        
             --error-red: #D67A7A;      
@@ -17,7 +17,7 @@
             --border-color: #EBEAE4;
         }
 
-        /* 一般模式 (經典藍白) */
+        /* 一般模式 (經典藍白) - 透過 class 切換 */
         body.normal-mode {
             --primary-color: #007AFF;
             --success-color: #0056b3;
@@ -29,6 +29,7 @@
             --border-color: #efefef;
         }
 
+        /* 基礎設定 */
         * { -webkit-tap-highlight-color: transparent; user-select: none; box-sizing: border-box; }
 
         body { 
@@ -44,40 +45,48 @@
         }
 
         .container { 
-            width: 100%; max-width: 600px; 
+            width: 100%;
+            max-width: 600px; 
             background: var(--card-bg); 
-            margin: 40px 10px; padding: 30px 25px; 
-            border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.06);
-            display: flex; flex-direction: column;
+            margin: 40px 10px; 
+            padding: 30px 25px; 
+            border-radius: 20px; 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            display: flex;
+            flex-direction: column;
             transition: background-color 0.3s ease;
         }
 
         @media (max-width: 480px) {
-            .container { margin: 0; border-radius: 0; min-height: 100vh; padding: 6vh 20px 20px 20px; box-shadow: none; }
+            .container { 
+                margin: 0;
+                border-radius: 0; 
+                min-height: 100vh; 
+                padding: 6vh 20px 20px 20px; 
+                box-shadow: none;
+            }
         }
 
         .hidden { display: none !important; }
 
-        /* 圖片容器 */
-        .q-image-container {
-            text-align: center; margin-bottom: 20px;
-            background: #fff; padding: 10px;
-            border-radius: 12px; border: 1px solid var(--border-color);
+        /* 首頁樣式 */
+        #home-screen { 
+            display: flex;
+            flex-direction: column; justify-content: center; align-items: center; min-height: 60vh; text-align: center;
         }
-        .q-image-container img { max-width: 100%; max-height: 200px; border-radius: 8px; }
-
-        #home-screen { display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 60vh; text-align: center; }
 
         h1 { font-size: 26px; margin-bottom: 40px; color: var(--text-main); font-weight: bold; }
-        .progress-bar { font-size: 14px; color: var(--primary-color); font-weight: 700; margin-bottom: 20px; }
-        .question-text { font-size: 19px; font-weight: 600; margin-bottom: 25px; line-height: 1.5; }
+        .progress-bar { font-size: 14px; color: var(--primary-color); font-weight: 700; margin-bottom: 20px; letter-spacing: 0.5px; }
+        .question-text { font-size: 19px; font-weight: 600; margin-bottom: 25px; line-height: 1.5; color: var(--text-main); }
         
-        /* 選項樣式：方正圓角 */
+        /* 選項樣式 */
         .option { 
-            display: block; width: 100%; padding: 16px; margin-bottom: 12px; 
+            display: block;
+            width: 100%; padding: 16px; margin-bottom: 12px; 
             border: 2px solid var(--border-color); border-radius: 12px; text-align: left; 
-            background: var(--card-bg); font-size: 16px; cursor: pointer; color: var(--text-main);
+            background: var(--card-bg); font-size: 16px; cursor: pointer;
             transition: all 0.2s ease;
+            color: var(--text-main);
         }
         @media (hover: hover) { .option:hover { border-color: var(--primary-color); } }
 
@@ -88,30 +97,37 @@
         /* 按鈕系統 */
         .nav-group { display: flex; gap: 12px; margin-top: 20px; }
         .big-btn { 
-            flex: 1; padding: 18px; font-size: 18px; font-weight: bold; border: none; 
-            border-radius: 15px; cursor: pointer; color: white;
-            display: flex; align-items: center; justify-content: center;
+            flex: 1;
+            padding: 18px; font-size: 18px; font-weight: bold; border: none; 
+            border-radius: 15px; cursor: pointer; transition: transform 0.1s, opacity 0.2s; color: white;
+            display: flex; align-items: center; justify-content: center; width: 100%;
         }
-        .start-btn { background: var(--primary-color); }
-        .bank-btn { background: var(--dark-gray); } 
+        .big-btn:active { transform: scale(0.98); opacity: 0.9; }
 
-        /* 「下一題」按鈕：與選項等寬，但改為膠囊型 (大圓角) */
-        #next-btn { 
-            background: var(--success-color); 
-            margin-top: 25px; 
-            border-radius: 50px; /* 改為大圓角 */
-            width: 100%;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* 增加陰影區分 */
-            border: 2px solid rgba(255,255,255,0.2);
-        }
-        #next-btn:active { transform: scale(0.98); }
+        .start-btn { background: var(--primary-color); margin-bottom: 15px; }
+        .bank-btn { background: var(--dark-gray); } 
         
         .theme-btn { 
-            background: transparent; border: 2px solid var(--primary-color); color: var(--primary-color); 
-            padding: 10px 22px; font-size: 14px; font-weight: bold; border-radius: 30px; margin-top: 25px; cursor: pointer;
+            background: transparent;
+            border: 2px solid var(--primary-color); 
+            color: var(--primary-color); 
+            padding: 10px 22px; 
+            font-size: 14px; 
+            font-weight: bold;
+            border-radius: 30px;
+            margin-top: 25px; 
+            cursor: pointer;
+            transition: all 0.2s;
         }
+        .theme-btn:active { transform: scale(0.95); background: var(--border-color); }
+        
+        #next-btn { background: var(--success-color); margin-top: 25px; }
+        #bank-prev { background: var(--dark-gray); }
+        #bank-next { background: var(--success-color); }
+        
         .back-home { 
-            width: 100%; padding: 14px; margin-top: 25px; border-radius: 10px; 
+            width: 100%;
+            padding: 14px; margin-top: 25px; border-radius: 10px; 
             border: 1px solid var(--dark-gray); background: transparent; color: var(--text-main); 
             cursor: pointer; font-size: 15px; font-weight: bold;
         }
@@ -122,27 +138,25 @@
 <div class="container">
     <div id="home-screen">
         <h1>混凝土丙級練習系統</h1>
-        <div style="width: 85%; max-width: 300px; display: flex; flex-direction: column; gap: 15px;">
+        <div style="width: 85%; max-width: 300px;">
             <button class="big-btn start-btn" onclick="initQuiz()">開始模擬測驗</button>
             <button class="big-btn bank-btn" onclick="showBankCategories()">題庫瀏覽模式</button>
         </div>
         <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">☀️ 切換為一般模式</button>
+        <p style="color: var(--dark-gray); font-size: 13px; margin-top: 25px;">系統會自動記憶您的顏色偏好設定</p>
     </div>
 
     <div id="quiz-screen" class="hidden">
         <div class="progress-bar" id="quiz-progress"></div>
         <div id="quiz-content">
-            <div id="q-image-area" class="q-image-container hidden">
-                <img id="q-image-src" src="" alt="題目圖示">
-            </div>
             <div class="question-text" id="q-text"></div>
             <div id="q-options"></div>
         </div>
         <button id="next-btn" class="big-btn hidden" onclick="loadNextQuestion()">下一題</button>
         
-        <div id="result-screen" class="hidden" style="text-align: center;">
+        <div id="result-screen" class="hidden" style="text-align: center; padding-top: 20px;">
             <div style="font-size: 60px;">🏆</div>
-            <h2>測驗結束</h2>
+            <h2 style="margin-top: 15px; color: var(--text-main);">測驗結束</h2>
             <p id="score-text" style="font-size: 36px; font-weight: bold; color: var(--primary-color); margin: 15px 0;"></p>
             <button class="big-btn start-btn" style="width:100%" onclick="initQuiz()">再測一次</button>
             <button class="back-home" onclick="goHome()">回首頁</button>
@@ -150,7 +164,7 @@
     </div>
 
     <div id="bank-category-screen" class="hidden">
-        <h2 style="text-align:center;">選擇章節</h2>
+        <h2 style="text-align:center; margin-bottom: 25px; color: var(--text-main);">選擇章節</h2>
         <div id="category-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
         <button class="back-home" onclick="goHome()">回首頁</button>
     </div>
@@ -159,15 +173,39 @@
         <div class="progress-bar" id="bank-progress"></div>
         <div id="bank-content"></div>
         <div class="nav-group">
-            <button class="big-btn bank-btn" onclick="moveBank(-1)">上一題</button>
-            <button class="big-btn start-btn" onclick="moveBank(1)">下一題</button>
+            <button id="bank-prev" class="big-btn" onclick="moveBank(-1)">上一題</button>
+            <button id="bank-next" class="big-btn" onclick="moveBank(1)">下一題</button>
         </div>
         <button class="back-home" onclick="showBankCategories()">返回列表</button>
     </div>
 </div>
 
 <script>
-    // --- 題庫資料 (範例 5 題，邏輯已設為抽取 20 題) ---
+    // --- 主題切換與記憶功能 ---
+    function toggleTheme() {
+        const body = document.body;
+        body.classList.toggle('normal-mode');
+        const isNormal = body.classList.contains('normal-mode');
+        localStorage.setItem('theme', isNormal ? 'normal' : 'eye-care');
+        updateThemeBtn(isNormal);
+    }
+
+    function updateThemeBtn(isNormal) {
+        const btn = document.getElementById('theme-btn');
+        btn.innerHTML = isNormal ? "🌿 切換為護眼模式" : "☀️ 切換為一般模式";
+    }
+
+    window.onload = () => {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'normal') {
+            document.body.classList.add('normal-mode');
+            updateThemeBtn(true);
+        } else {
+            updateThemeBtn(false);
+        }
+    };
+
+    // --- 題庫與測驗邏輯 ---
     const allQuestions = [
   {
     category: "  01：圖說識讀",
@@ -3642,20 +3680,11 @@
     answer: 3
   }
 ];
+    let currentQuizPool = [];
+    let currentIdx = 0;
+    let score = 0;
 
-    // --- 主題切換 ---
-    function toggleTheme() {
-        document.body.classList.toggle('normal-mode');
-        const isNormal = document.body.classList.contains('normal-mode');
-        localStorage.setItem('theme', isNormal ? 'normal' : 'eye-care');
-        document.getElementById('theme-btn').innerText = isNormal ? "🌿 切換為護眼模式" : "☀️ 切換為一般模式";
-    }
-
-    window.onload = () => {
-        if (localStorage.getItem('theme') === 'normal') toggleTheme();
-    };
-
-    // --- 工具：洗牌 ---
+    // 洗牌函數
     function shuffle(array) {
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -3666,60 +3695,53 @@
 
     function goHome() { location.reload(); }
 
-    // --- 測驗邏輯 ---
-    let currentQuizPool = [];
-    let currentIdx = 0;
-    let score = 0;
-
     function initQuiz() {
         document.getElementById('home-screen').classList.add('hidden');
         document.getElementById('result-screen').classList.add('hidden');
-        document.getElementById('quiz-screen').classList.remove('hidden');
         document.getElementById('quiz-content').classList.remove('hidden');
-        
-        // 【修正重點】每次抽取 20 題 (若資料庫不足 20 則抽全部)
-        const quizCount = Math.min(allQuestions.length, 20);
-        currentQuizPool = shuffle([...allQuestions]).slice(0, quizCount);
-        
-        currentIdx = 0; score = 0;
+        document.getElementById('quiz-screen').classList.remove('hidden');
+        // 隨機選題
+        currentQuizPool = shuffle([...allQuestions]).slice(0, 20);
+        currentIdx = 0;
+        score = 0;
         loadQuizQuestion();
     }
 
     function loadQuizQuestion() {
         const q = currentQuizPool[currentIdx];
-        document.getElementById('quiz-progress').innerText = `題目 ${currentIdx + 1} / ${currentQuizPool.length}`;
+        document.getElementById('quiz-progress').innerText = `STEP ${currentIdx + 1} / ${currentQuizPool.length}`;
         document.getElementById('q-text').innerText = q.question;
         document.getElementById('next-btn').classList.add('hidden');
-
-        // 圖片處理
-        const imgArea = document.getElementById('q-image-area');
-        if (q.image) {
-            document.getElementById('q-image-src').src = q.image;
-            imgArea.classList.remove('hidden');
-        } else {
-            imgArea.classList.add('hidden');
-        }
-
-        // 選項處理
+        
         const optionsDiv = document.getElementById('q-options');
         optionsDiv.innerHTML = '';
-        const mapped = q.options.map((text, i) => ({ text, isCorrect: (i + 1 === q.answer) }));
-        const shuffled = shuffle([...mapped]);
 
-        shuffled.forEach(opt => {
+        // 建立包含正確資訊的選項陣列並洗牌
+        const shuffledOptions = shuffle(q.options.map((opt, i) => ({
+            text: opt,
+            isCorrect: (i + 1 === q.answer)
+        })));
+
+        shuffledOptions.forEach((optObj) => {
             const btn = document.createElement('button');
             btn.className = 'option';
-            btn.innerText = opt.text;
+            btn.innerText = optObj.text;
             btn.onclick = () => {
                 const allBtns = optionsDiv.querySelectorAll('.option');
-                allBtns.forEach(b => b.style.pointerEvents = 'none'); 
-                if (opt.isCorrect) {
-                    btn.classList.add('correct'); btn.innerText += " ✅"; score++;
+                allBtns.forEach(b => b.onclick = null);
+                
+                if (optObj.isCorrect) {
+                    btn.classList.add('correct');
+                    btn.innerText += " ✅";
+                    score++;
                 } else {
-                    btn.classList.add('wrong'); btn.innerText += " ❌";
-                    shuffled.forEach((item, idx) => {
+                    btn.classList.add('wrong');
+                    btn.innerText += " ❌";
+                    // 顯示正確答案
+                    shuffledOptions.forEach((item, idx) => {
                         if (item.isCorrect) {
-                            allBtns[idx].classList.add('correct'); allBtns[idx].innerText += " ✅";
+                            allBtns[idx].classList.add('correct');
+                            allBtns[idx].innerText += " ✅";
                         }
                     });
                 }
@@ -3731,16 +3753,17 @@
 
     function loadNextQuestion() {
         currentIdx++;
-        if (currentIdx < currentQuizPool.length) loadQuizQuestion();
-        else {
+        if (currentIdx < currentQuizPool.length) {
+            loadQuizQuestion();
+        } else {
             document.getElementById('quiz-content').classList.add('hidden');
             document.getElementById('next-btn').classList.add('hidden');
             document.getElementById('result-screen').classList.remove('hidden');
-            document.getElementById('score-text').innerText = `${Math.round((score/currentQuizPool.length)*100)} 分`;
+            document.getElementById('score-text').innerText = `${Math.round((score / currentQuizPool.length) * 100)} 分`;
         }
     }
 
-    // --- 題庫瀏覽 ---
+    // --- 題庫瀏覽模式 ---
     let bankPool = [];
     let bankIdx = 0;
 
@@ -3755,32 +3778,45 @@
             const btn = document.createElement('button');
             btn.className = 'option';
             btn.style.textAlign = 'center';
+            btn.style.borderColor = 'var(--primary-color)';
+            btn.style.color = 'var(--primary-color)';
+            btn.style.fontWeight = 'bold';
             btn.innerText = cat;
-            btn.onclick = () => {
-                bankPool = allQuestions.filter(q => q.category === cat);
-                bankIdx = 0;
-                document.getElementById('bank-category-screen').classList.add('hidden');
-                document.getElementById('bank-view-screen').classList.remove('hidden');
-                renderBankItem();
-            };
+            btn.onclick = () => startBankView(cat);
             listDiv.appendChild(btn);
         });
     }
 
+    function startBankView(cat) {
+        bankPool = allQuestions.filter(q => q.category === cat);
+        bankIdx = 0;
+        document.getElementById('bank-category-screen').classList.add('hidden');
+        document.getElementById('bank-view-screen').classList.remove('hidden');
+        renderBankItem();
+    }
+
     function renderBankItem() {
         const q = bankPool[bankIdx];
-        document.getElementById('bank-progress').innerText = `${q.category} (${bankIdx+1}/${bankPool.length})`;
+        document.getElementById('bank-progress').innerText = `${q.category} (${bankIdx + 1}/${bankPool.length})`;
         const content = document.getElementById('bank-content');
-        let imgHTML = q.image ? `<div class="q-image-container"><img src="${q.image}"></div>` : '';
-        content.innerHTML = `${imgHTML}<div class="question-text">${q.question}</div>`;
-        q.options.forEach((txt, i) => {
-            const isAns = (i + 1 === q.answer);
-            content.innerHTML += `<div class="option ${isAns ? 'correct' : ''}">${txt} ${isAns ? '✅' : ''}</div>`;
+        content.innerHTML = `<div class="question-text">${q.question}</div>`;
+        
+        // 題庫模式也將選項隨機化顯示
+        const shuffledOptions = shuffle(q.options.map((opt, i) => ({
+            text: opt,
+            isCorrect: (i + 1 === q.answer)
+        })));
+
+        shuffledOptions.forEach((optObj) => {
+            const isAns = optObj.isCorrect;
+            content.innerHTML += `<div class="option ${isAns ? 'correct' : ''}">${optObj.text} ${isAns ? '✅' : ''}</div>`;
         });
     }
 
     function moveBank(step) {
-        bankIdx = Math.max(0, Math.min(bankPool.length - 1, bankIdx + step));
+        bankIdx += step;
+        if (bankIdx < 0) bankIdx = 0;
+        else if (bankIdx >= bankPool.length) bankIdx = bankPool.length - 1;
         renderBankItem();
     }
 </script>
