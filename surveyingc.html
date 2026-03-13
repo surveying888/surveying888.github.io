@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>測量丙級練習系統</title>
     <style>
-        /* --- 1. 顏色定義 --- */
+        /* --- 1. 顏色與主題定義 --- */
         :root {
-            --primary-color: #6B8E7B;
+            --primary-color: #6B8E7B; /* 護眼綠 */
             --success-color: #4A6B58;  
             --bg-color: #F4F1EA;       
             --dark-gray: #A3A3A3;      
@@ -17,10 +17,11 @@
             --border-color: #EBEAE4;
         }
 
+        /* 舒適黃色模式 */
         body.normal-mode {
-            --primary-color: #E6A23C;  /* 舒服黃色 */
+            --primary-color: #E6A23C;  /* 暖陽黃 */
             --success-color: #B88230;  
-            --bg-color: #FFF9EB;       
+            --bg-color: #FFF9EB;       /* 淺鵝黃 */
             --dark-gray: #909399;
             --card-bg: #ffffff;
             --error-red: #F56C6C;      
@@ -28,7 +29,7 @@
             --border-color: #F2E8CF;
         }
 
-        /* --- 2. 基礎設定 --- */
+        /* --- 2. 基礎布局 --- */
         * { -webkit-tap-highlight-color: transparent; user-select: none; box-sizing: border-box; }
 
         body { 
@@ -40,7 +41,7 @@
             align-items: flex-start;
             min-height: 100vh;
             color: var(--text-main);
-            transition: background-color 0.3s ease; 
+            transition: all 0.3s ease; 
         }
 
         .container { 
@@ -61,11 +62,11 @@
 
         .hidden { display: none !important; }
 
-        /* --- 3. 標題與按鈕對齊修正 (解決歪一邊的問題) --- */
+        /* --- 3. 標題與腳架圖案對齊 --- */
         #home-screen {
             display: flex;
             flex-direction: column;
-            align-items: center; /* 關鍵：讓所有子元素水位置中 */
+            align-items: center;
             text-align: center;
             width: 100%;
         }
@@ -75,7 +76,7 @@
             align-items: center; 
             justify-content: center; 
             gap: 12px; 
-            margin-bottom: 40px; 
+            margin-bottom: 45px; 
             width: 100%;
         }
 
@@ -103,29 +104,19 @@
             margin-right: 8px;
         }
 
-        /* 修正：按鈕外框容器 */
+        /* 解決按鈕框框歪掉的關鍵容器 */
         .btn-wrapper {
-            width: 85%;
-            max-width: 300px;
-            margin: 0 auto; /* 關鍵：自動置中 */
+            width: 100%;
+            max-width: 320px;
+            margin: 0 auto;
             display: flex;
             flex-direction: column;
-            gap: 15px; /* 按鈕之間的間距 */
+            gap: 16px;
         }
 
-        /* --- 4. 元件樣式 --- */
-        .q-image-container {
-            text-align: center;
-            margin-bottom: 20px;
-            background: #fff;
-            padding: 10px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-        }
-        .q-image-container img { max-width: 100%; max-height: 200px; border-radius: 8px; }
-
+        /* --- 4. 元件美化 --- */
         .big-btn { 
-            width: 100%; /* 填滿容器 */
+            width: 100%;
             padding: 18px; 
             font-size: 18px; 
             font-weight: bold; 
@@ -136,16 +127,16 @@
             display: flex; 
             align-items: center; 
             justify-content: center;
-            transition: transform 0.1s;
+            transition: transform 0.1s, opacity 0.2s;
         }
-        .big-btn:active { transform: scale(0.98); }
+        .big-btn:active { transform: scale(0.98); opacity: 0.9; }
         .start-btn { background: var(--primary-color); }
         .bank-btn { background: var(--dark-gray); }
 
         .back-home { 
             width: auto; 
             padding: 10px 25px; 
-            margin-top: 30px; 
+            margin: 30px auto 0 auto; 
             border-radius: 30px; 
             border: 2px solid var(--primary-color); 
             background: transparent; 
@@ -155,7 +146,8 @@
         }
 
         .progress-bar { font-size: 14px; color: var(--primary-color); font-weight: 700; margin-bottom: 20px; }
-        .question-text { font-size: 19px; font-weight: 600; margin-bottom: 25px; line-height: 1.5; }
+        .question-text { font-size: 19px; font-weight: 600; margin-bottom: 25px; line-height: 1.5; text-align: left; }
+        
         .option { 
             display: block; width: 100%; padding: 16px; margin-bottom: 12px; 
             border: 2px solid var(--border-color); border-radius: 12px; text-align: left; 
@@ -163,6 +155,11 @@
         }
         .option.correct { border-color: var(--primary-color); background: #FAF3E6; color: var(--success-color); font-weight: bold; }
         .option.wrong { border-color: var(--error-red); color: var(--error-red); }
+
+        .q-image-container {
+            text-align: center; margin-bottom: 20px; background: #fff; padding: 10px; border-radius: 12px; border: 1px solid var(--border-color);
+        }
+        .q-image-container img { max-width: 100%; max-height: 200px; border-radius: 8px; }
     </style>
 </head>
 <body>
@@ -222,24 +219,67 @@
 </div>
 
 <script>
-    // --- 邏輯保持不變 ---
-    function toggleTheme() {
-        document.body.classList.toggle('normal-mode');
-        const isNormal = document.body.classList.contains('normal-mode');
-        localStorage.setItem('theme', isNormal ? 'normal' : 'eye-care');
-    }
-
-    window.onload = () => {
-        if (localStorage.getItem('theme') === 'normal') document.body.classList.add('normal-mode');
-    };
-
+    // --- 題目數據：已更換為測量丙級前10題 ---
     const allQuestions = [
       {
-        category: "01：基本識讀",
-        question: "如下圖所示，建築圖上此符號代表",
-        options: ["標高", "高帽落水頭", "直徑", "弧度"],
-        answer: 1,
-        image: "cq16.png" 
+        category: "01：基本學能",
+        question: "我國現時土地測量所採用之長度單位為",
+        options: ["公尺", "市尺", "英尺", "台尺"],
+        answer: 1
+      },
+      {
+        category: "01：基本學能",
+        question: "市場上房屋建築面積一般以坪為單位，一坪等於",
+        options: ["3.344 平方公尺", "3.305 平方公尺", "36 平方呎", "18 平方台尺"],
+        answer: 2
+      },
+      {
+        category: "01：基本學能",
+        question: "目前台灣地區使用 TM 二度分帶坐標系統，下列何者「不符合」此坐標系統之定義？",
+        options: ["原點為中央經線與赤道交點", "中央經線尺度比率為 0.9999", "東經 121° 為中央經線", "原點之 X 坐標為 500,000 公尺"],
+        answer: 4
+      },
+      {
+        category: "01：基本學能",
+        question: "長 125m、寬 35m 之長方形土地一塊，面積為若干公頃？",
+        options: ["0.4375 公頃", "4.375 公頃", "43.75 公頃", "44 公頃"],
+        answer: 1
+      },
+      {
+        category: "01：基本學能",
+        question: "土地面積換算，下列何者錯誤？",
+        options: ["一公頃等於 10,000 平方公尺", "一公畝等於 100 平方公尺", "一公頃約等於 2,934 坪", "一甲約等於 0.9699 公頃"],
+        answer: 3
+      },
+      {
+        category: "01：基本學能",
+        question: "多色地圖中，水稻田使用之顏色一般為",
+        options: ["藍色", "綠色", "紅色", "黑色"],
+        answer: 2
+      },
+      {
+        category: "01：基本學能",
+        question: "地球參考橢球體之長軸半徑為 a，短軸半徑為 b，則其扁率 f 為",
+        options: ["(a+b)/a", "(2a-b)/a", "(a+b)/2", "(a-b)/a"],
+        answer: 4
+      },
+      {
+        category: "01：基本學能",
+        question: "測繪 1/500 地形圖，兩點間距離實地為 70 公尺，在圖上長度應為",
+        options: ["7 公分", "10 公分", "14 公分", "20 公分"],
+        answer: 3
+      },
+      {
+        category: "01：基本學能",
+        question: "在 1/2000 地圖上，圖面長度 10cm 之實地長度為",
+        options: ["20 公尺", "200 公尺", "2000 公尺", "20000 公尺"],
+        answer: 2
+      },
+      {
+        category: "01：基本學能",
+        question: "大比例尺開闊地區之細部測量常用之方法為",
+        options: ["交會法", "縱橫線法", "半導線法", "光線法"],
+        answer: 4
       }
     ];
 
@@ -255,12 +295,24 @@
         return array;
     }
 
+    function toggleTheme() {
+        document.body.classList.toggle('normal-mode');
+        const isNormal = document.body.classList.contains('normal-mode');
+        localStorage.setItem('theme', isNormal ? 'normal' : 'eye-care');
+    }
+
+    window.onload = () => {
+        if (localStorage.getItem('theme') === 'normal') document.body.classList.add('normal-mode');
+    };
+
     function goHome() { location.reload(); }
 
     function initQuiz() {
         document.getElementById('home-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.add('hidden');
         document.getElementById('quiz-screen').classList.remove('hidden');
-        currentQuizPool = shuffle([...allQuestions]).slice(0, 20);
+        document.getElementById('quiz-content').classList.remove('hidden');
+        currentQuizPool = shuffle([...allQuestions]); // 使用全部測量題目
         currentIdx = 0;
         score = 0;
         loadQuizQuestion();
@@ -272,6 +324,7 @@
         document.getElementById('q-text').innerText = q.question;
         document.getElementById('next-btn').classList.add('hidden');
         
+        // 處理圖片 (如果題目有 image 屬性)
         const imgArea = document.getElementById('q-image-area');
         const imgTag = document.getElementById('q-image-src');
         if (q.image) {
@@ -332,7 +385,6 @@
 
     let bankPool = [];
     let bankIdx = 0;
-
     function startBankView(cat) {
         bankPool = allQuestions.filter(q => q.category === cat);
         bankIdx = 0;
