@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>測量丙級練習系統</title>
     <style>
-        /* 預設：護眼模式 (綠色系) */
+        /* 預設：護眼模式 */
         :root {
             --primary-color: #6B8E7B;
             --success-color: #4A6B58;  
@@ -19,13 +19,13 @@
 
         /* 一般模式 (舒服黃色主題) */
         body.normal-mode {
-            --primary-color: #D9A01B; /* 暖金色 */
-            --success-color: #B8860B; /* 深金黃 */
-            --bg-color: #FFFDF0;      /* 極淺奶油黃 */
+            --primary-color: #D9A01B;
+            --success-color: #B8860B;
+            --bg-color: #FFFDF0;      
             --dark-gray: #8E8E93;
             --card-bg: #ffffff;
             --error-red: #FF3B30;      
-            --text-main: #5C4B00;     /* 深褐色，搭配黃色更舒服 */
+            --text-main: #5C4B00;     
             --border-color: #F2EBC4;  
         }
 
@@ -51,10 +51,9 @@
 
         .hidden { display: none !important; }
 
-        /* 標題樣式調整 */
         h1 { font-size: 28px; margin-bottom: 40px; color: var(--text-main); font-weight: bold; text-align: center; }
         .title-highlight { 
-            background: linear-gradient(transparent 60%, #FFE082 40%); /* 蠟筆感底線強調 */
+            background: linear-gradient(transparent 60%, #FFE082 40%);
             padding: 0 5px;
             color: var(--primary-color);
             font-size: 32px;
@@ -63,7 +62,6 @@
         
         .tripod-icon { font-size: 24px; vertical-align: middle; margin-left: 5px; opacity: 0.8; }
 
-        /* 首頁內容置中 */
         #home-screen {
             display: flex;
             flex-direction: column;
@@ -156,66 +154,11 @@
 
 <script>
     const allQuestions = [
-      {
-        category: "01：基本學能",
-        question: "我國現時土地測量所採用之長度單位為",
-        options: ["公尺", "市尺", "英尺", "台尺"],
-        answer: 1
-      },
-      {
-        category: "01：基本學能",
-        question: "市場上房屋建築面積一般以坪為單位，一坪等於",
-        options: ["3.344 平方公尺", "3.305 平方公尺", "36 平方呎", "18 平方台尺"],
-        answer: 2
-      },
-      {
-        category: "01：基本學能",
-        question: "目前台灣地區使用 TM 二度分帶坐標系統，下列何者「不符合」此坐標系統之定義？",
-        options: ["原點為中央經線與赤道交點", "中央經線尺度比率為 0.9999", "東經 121° 為中央經線", "原點之 X 坐標為 500,000 公尺"],
-        answer: 4
-      },
-      {
-        category: "01：基本學能",
-        question: "長 125m、寬 35m 之長方形土地一塊，面積為若干公頃？",
-        options: ["0.4375 公頃", "4.375 公頃", "43.75 公頃", "44 公頃"],
-        answer: 1
-      },
-      {
-        category: "01：基本學能",
-        question: "土地面積換算，下列何者錯誤？",
-        options: ["一公頃等於 10,000 平方公尺", "一公畝等於 100 平方公尺", "一公頃約等於 2,934 坪", "一甲約等於 0.9699 公頃"],
-        answer: 3
-      },
-      {
-        category: "01：基本學能",
-        question: "多色地圖中，水稻田使用之顏色一般為",
-        options: ["藍色", "綠色", "紅色", "黑色"],
-        answer: 2
-      },
-      {
-        category: "01：基本學能",
-        question: "地球參考橢球體之長軸半徑為 a，短軸半徑為 b，則其扁率 f 為",
-        options: ["(a+b)/a", "(2a-b)/a", "(a+b)/2", "(a-b)/a"],
-        answer: 4
-      },
-      {
-        category: "01：基本學能",
-        question: "測繪 1/500 地形圖，兩點間距離實地為 70 公尺，在圖上長度應為",
-        options: ["7 公分", "10 公分", "14 公分", "20 公分"],
-        answer: 3
-      },
-      {
-        category: "01：基本學能",
-        question: "在 1/2000 地圖上，圖面長度 10cm 之實地長度為",
-        options: ["20 公尺", "200 公尺", "2000 公尺", "20000 公尺"],
-        answer: 2
-      },
-      {
-        category: "01：基本學能",
-        question: "大比例尺開闊地區之細部測量常用之方法為",
-        options: ["交會法", "縱橫線法", "半導線法", "光線法"],
-        answer: 4
-      }
+        { category: "01：基本學能", question: "我國現時土地測量所採用之長度單位為", options: ["公尺", "市尺", "英尺", "台尺"], answer: 1 },
+        { category: "01：圖說識讀", question: "如下圖所示，建築圖上此符號代表", options: ["標高", "高帽落水頭", "直徑", "弧度"], answer: 1, image: "cq16.png" },
+        { category: "01：基本學能", question: "測量作業程序為", options: ["作業計畫→繪圖→測量→計算", "作業計畫→測量→計算→製圖", "作業計畫→計算→測量→製圖", "作業計畫→製圖→計算→測量"], answer: 2 },
+        { category: "02：儀器學", question: "水準儀之圓水準器主要作用為", options: ["粗略整平", "精確整平", "瞄準目標", "消除視差"], answer: 1 },
+        { category: "02：儀器學", question: "經緯儀整置時，首先應進行的是", options: ["定心", "整平", "定心與整平", "瞄準"], answer: 3 }
     ];
 
     function toggleTheme() {
@@ -246,6 +189,7 @@
         document.getElementById('result-screen').classList.add('hidden');
         document.getElementById('quiz-screen').classList.remove('hidden');
         const quizCount = Math.min(allQuestions.length, 20);
+        // 題目依然隨機，但選項固定
         currentQuizPool = shuffle([...allQuestions]).slice(0, quizCount);
         currentIdx = 0; score = 0;
         loadQuizQuestion();
@@ -268,25 +212,23 @@
 
         const optionsDiv = document.getElementById('q-options');
         optionsDiv.innerHTML = '';
-        const mapped = q.options.map((text, i) => ({ text, isCorrect: (i + 1 === q.answer) }));
-        const shuffled = shuffle([...mapped]);
 
-        shuffled.forEach(opt => {
+        // --- 已修改：移除 shuffle，直接按順序產生選項 ---
+        q.options.forEach((text, i) => {
+            const isCorrect = (i + 1 === q.answer);
             const btn = document.createElement('button');
             btn.className = 'option';
-            btn.innerText = opt.text;
+            btn.innerText = text;
             btn.onclick = () => {
                 const allBtns = optionsDiv.querySelectorAll('.option');
                 allBtns.forEach(b => b.style.pointerEvents = 'none'); 
-                if (opt.isCorrect) {
+                if (isCorrect) {
                     btn.classList.add('correct'); btn.innerText += " ✅"; score++;
                 } else {
                     btn.classList.add('wrong'); btn.innerText += " ❌";
-                    shuffled.forEach((item, idx) => {
-                        if (item.isCorrect) {
-                            allBtns[idx].classList.add('correct'); allBtns[idx].innerText += " ✅";
-                        }
-                    });
+                    // 顯示正確答案
+                    allBtns[q.answer - 1].classList.add('correct');
+                    allBtns[q.answer - 1].innerText += " ✅";
                 }
                 document.getElementById('next-btn').classList.remove('hidden');
             };
