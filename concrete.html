@@ -1,3 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>混凝土丙級測驗練習系統</title>
+    <style>
+        /* 預設：護眼模式 (燕麥米 + 莫蘭迪綠) */
+        :root {
+            --primary-color: #6B8E7B;
+            --success-color: #4A6B58;  
+            --bg-color: #F4F1EA;       
+            --dark-gray: #A3A3A3;      
+            --card-bg: #FDFDFB;        
+            --error-red: #D67A7A;      
+            --text-main: #4A4A4A;      
+            --border-color: #EBEAE4;
+        }
+
+        /* 一般模式 (經典藍白) - 透過 class 切換 */
+        body.normal-mode {
+            --primary-color: #007AFF;
+            --success-color: #0056b3;
+            --bg-color: #e5e5ea; 
+            --dark-gray: #8E8E93;
+            --card-bg: #ffffff;
+            --error-red: #FF3B30;      
+            --text-main: #1c1c1e;
+            --border-color: #efefef;
+        }
+
+        /* 基礎設定 */
+        * { -webkit-tap-highlight-color: transparent; user-select: none; box-sizing: border-box; }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: var(--bg-color); 
+            margin: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: flex-start;
+            min-height: 100vh;
+            color: var(--text-main);
+            transition: background-color 0.3s ease, color 0.3s ease; 
+        }
+
+        .container { 
+            width: 100%;
+            max-width: 600px; 
+            background: var(--card-bg); 
+            margin: 40px 10px; 
+            padding: 30px 25px; 
+            border-radius: 20px; 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.3s ease;
+        }
+
+        @media (max-width: 480px) {
+            .container { 
+                margin: 0;
+                border-radius: 0; 
+                min-height: 100vh; 
+                padding: 6vh 20px 20px 20px; 
+                box-shadow: none;
+            }
+        }
+
+        .hidden { display: none !important; }
+
+        /* --- 新增：圖片樣式 --- */
+        .q-image-container {
+            text-align: center;
+            margin-bottom: 20px;
+            background: #fff;
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .q-image-container img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+        }
+
+        /* 首頁樣式 */
+        #home-screen { 
+            display: flex;
+            flex-direction: column; justify-content: center; align-items: center; min-height: 60vh; text-align: center;
+        }
+
+        h1 { font-size: 26px; margin-bottom: 40px; color: var(--text-main); font-weight: bold; }
+        .progress-bar { font-size: 14px; color: var(--primary-color); font-weight: 700; margin-bottom: 20px; letter-spacing: 0.5px; }
+        .question-text { font-size: 19px; font-weight: 600; margin-bottom: 25px; line-height: 1.5; color: var(--text-main); }
+        
+        /* 選項樣式 */
+        .option { 
+            display: block;
+            width: 100%; padding: 16px; margin-bottom: 12px; 
+            border: 2px solid var(--border-color); border-radius: 12px; text-align: left; 
+            background: var(--card-bg); font-size: 16px; cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text-main);
+        }
+        @media (hover: hover) { .option:hover { border-color: var(--primary-color); } }
+
+        .option.correct { border-color: var(--primary-color); background: #EAF0EC; color: var(--success-color); font-weight: bold; }
+        body.normal-mode .option.correct { background: #e7f2ff; }
+        .option.wrong { border-color: var(--error-red); color: var(--error-red); }
+
+        /* 按鈕系統 */
+        .nav-group { display: flex; gap: 12px; margin-top: 20px; }
+        .big-btn { 
+            flex: 1;
+            padding: 18px; font-size: 18px; font-weight: bold; border: none; 
+            border-radius: 15px; cursor: pointer; transition: transform 0.1s, opacity 0.2s; color: white;
+            display: flex; align-items: center; justify-content: center; width: 100%;
+        }
+        .big-btn:active { transform: scale(0.98); opacity: 0.9; }
+
+        .start-btn { background: var(--primary-color); margin-bottom: 15px; }
+        .bank-btn { background: var(--dark-gray); } 
+        
+        .theme-btn { 
+            background: transparent;
+            border: 2px solid var(--primary-color); 
+            color: var(--primary-color); 
+            padding: 10px 22px; 
+            font-size: 14px; 
+            font-weight: bold;
+            border-radius: 30px;
+            margin-top: 25px; 
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .theme-btn:active { transform: scale(0.95); background: var(--border-color); }
+        
+        #next-btn { background: var(--success-color); margin-top: 25px; }
+        #bank-prev { background: var(--dark-gray); }
+        #bank-next { background: var(--success-color); }
+        
+        .back-home { 
+            width: 100%;
+            padding: 14px; margin-top: 25px; border-radius: 10px; 
+            border: 1px solid var(--dark-gray); background: transparent; color: var(--text-main); 
+            cursor: pointer; font-size: 15px; font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="home-screen">
+        <h1>混凝土丙級練習系統</h1>
+        <div style="width: 85%; max-width: 300px;">
+            <button class="big-btn start-btn" onclick="initQuiz()">開始模擬測驗</button>
+            <button class="big-btn bank-btn" onclick="showBankCategories()">題庫瀏覽模式</button>
+        </div>
+        <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">☀️ 切換為一般模式</button>
+        <p style="color: var(--dark-gray); font-size: 13px; margin-top: 25px;">系統會自動記憶您的顏色偏好設定</p>
+    </div>
+
+    <div id="quiz-screen" class="hidden">
+        <div class="progress-bar" id="quiz-progress"></div>
+        <div id="quiz-content">
+            <div id="q-image-area" class="q-image-container hidden">
+                <img id="q-image-src" src="" alt="題目圖示">
+            </div>
+            <div class="question-text" id="q-text"></div>
+            <div id="q-options"></div>
+        </div>
+        <button id="next-btn" class="big-btn hidden" onclick="loadNextQuestion()">下一題</button>
+        
+        <div id="result-screen" class="hidden" style="text-align: center; padding-top: 20px;">
+            <div style="font-size: 60px;">🏆</div>
+            <h2 style="margin-top: 15px; color: var(--text-main);">測驗結束</h2>
+            <p id="score-text" style="font-size: 36px; font-weight: bold; color: var(--primary-color); margin: 15px 0;"></p>
+            <button class="big-btn start-btn" style="width:100%" onclick="initQuiz()">再測一次</button>
+            <button class="back-home" onclick="goHome()">回首頁</button>
+        </div>
+    </div>
+
+    <div id="bank-category-screen" class="hidden">
+        <h2 style="text-align:center; margin-bottom: 25px; color: var(--text-main);">選擇章節</h2>
+        <div id="category-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
+        <button class="back-home" onclick="goHome()">回首頁</button>
+    </div>
+
+    <div id="bank-view-screen" class="hidden">
+        <div class="progress-bar" id="bank-progress"></div>
+        <div id="bank-content"></div>
+        <div class="nav-group">
+            <button id="bank-prev" class="big-btn" onclick="moveBank(-1)">上一題</button>
+            <button id="bank-next" class="big-btn" onclick="moveBank(1)">下一題</button>
+        </div>
+        <button class="back-home" onclick="showBankCategories()">返回列表</button>
+    </div>
+</div>
+
 <script>
     // --- 主題切換與記憶功能 ---
     function toggleTheme() {
@@ -23,7 +223,7 @@
         }
     };
 
-    // --- 題庫資料 ---
+    // --- 題庫與測驗邏輯 ---
     const allQuestions = [
   {
     category: "  01：圖說識讀",
@@ -3498,12 +3698,10 @@
     answer: 3
   }
 ];
-
     let currentQuizPool = [];
     let currentIdx = 0;
     let score = 0;
 
-    // 洗牌函式
     function shuffle(array) {
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -3514,13 +3712,11 @@
 
     function goHome() { location.reload(); }
 
-    // --- 模擬測驗邏輯 (隨機) ---
     function initQuiz() {
         document.getElementById('home-screen').classList.add('hidden');
         document.getElementById('result-screen').classList.add('hidden');
         document.getElementById('quiz-content').classList.remove('hidden');
         document.getElementById('quiz-screen').classList.remove('hidden');
-        // 隨機抽 20 題
         currentQuizPool = shuffle([...allQuestions]).slice(0, 20);
         currentIdx = 0;
         score = 0;
@@ -3533,6 +3729,7 @@
         document.getElementById('q-text').innerText = q.question;
         document.getElementById('next-btn').classList.add('hidden');
         
+        // --- 新增：處理測驗中的圖片 ---
         const imgArea = document.getElementById('q-image-area');
         const imgTag = document.getElementById('q-image-src');
         if (q.image) {
@@ -3545,7 +3742,6 @@
         const optionsDiv = document.getElementById('q-options');
         optionsDiv.innerHTML = '';
 
-        // 測驗模式：選項隨機
         const shuffledOptions = shuffle(q.options.map((opt, i) => ({
             text: opt,
             isCorrect: (i + 1 === q.answer)
@@ -3591,7 +3787,6 @@
         }
     }
 
-    // --- 題庫瀏覽邏輯 (照順序) ---
     let bankPool = [];
     let bankIdx = 0;
 
@@ -3616,7 +3811,6 @@
     }
 
     function startBankView(cat) {
-        // 篩選後不進行 shuffle，保持原始題庫順序
         bankPool = allQuestions.filter(q => q.category === cat);
         bankIdx = 0;
         document.getElementById('bank-category-screen').classList.add('hidden');
@@ -3629,6 +3823,7 @@
         document.getElementById('bank-progress').innerText = `${q.category} (${bankIdx + 1}/${bankPool.length})`;
         const content = document.getElementById('bank-content');
         
+        // --- 新增：處理題庫模式中的圖片 ---
         let imgHTML = '';
         if (q.image) {
             imgHTML = `<div class="q-image-container"><img src="${q.image}"></div>`;
@@ -3636,12 +3831,14 @@
         
         content.innerHTML = `${imgHTML}<div class="question-text">${q.question}</div>`;
         
-        // 題庫模式：選項與答案照順序顯示
-        q.options.forEach((optText, i) => {
-            const isAns = (i + 1 === q.answer);
-            const statusClass = isAns ? 'correct' : '';
-            const checkMark = isAns ? '✅' : '';
-            content.innerHTML += `<div class="option ${statusClass}">${optText} ${checkMark}</div>`;
+        const shuffledOptions = shuffle(q.options.map((opt, i) => ({
+            text: opt,
+            isCorrect: (i + 1 === q.answer)
+        })));
+
+        shuffledOptions.forEach((optObj) => {
+            const isAns = optObj.isCorrect;
+            content.innerHTML += `<div class="option ${isAns ? 'correct' : ''}">${optObj.text} ${isAns ? '✅' : ''}</div>`;
         });
     }
 
@@ -3652,3 +3849,6 @@
         renderBankItem();
     }
 </script>
+
+</body>
+</html>
