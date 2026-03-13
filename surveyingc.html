@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>測量丙級練習系統</title>
     <style>
-        /* 預設：護眼模式 */
+        /* 預設：護眼模式 (燕麥米 + 莫蘭迪綠) */
         :root {
             --primary-color: #6B8E7B;
             --success-color: #4A6B58;  
@@ -17,126 +17,192 @@
             --border-color: #EBEAE4;
         }
 
-        /* 一般模式 (舒服黃色主題) */
+        /* 一般模式 (舒適黃色調) */
         body.normal-mode {
-            --primary-color: #D9A01B;
-            --success-color: #B8860B;
-            --bg-color: #FFFDF0;      
-            --dark-gray: #8E8E93;
+            --primary-color: #EAB308; /* 溫暖的琥珀黃 */
+            --success-color: #B45309; /* 深黃色，確保文字可讀性 */
+            --bg-color: #FFFBEB; 
+            --dark-gray: #78350F;
             --card-bg: #ffffff;
-            --error-red: #FF3B30;      
-            --text-main: #5C4B00;     
-            --border-color: #F2EBC4;  
+            --error-red: #EF4444;      
+            --text-main: #451A03;
+            --border-color: #FEF3C7;
         }
 
+        /* 基礎設定 */
         * { -webkit-tap-highlight-color: transparent; user-select: none; box-sizing: border-box; }
 
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background: var(--bg-color); 
-            margin: 0; display: flex; justify-content: center; align-items: flex-start;
-            min-height: 100vh; color: var(--text-main);
-            transition: background-color 0.3s ease; 
+            margin: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: flex-start;
+            min-height: 100vh;
+            color: var(--text-main);
+            transition: background-color 0.3s ease, color 0.3s ease; 
         }
 
         .container { 
-            width: 100%; max-width: 600px; background: var(--card-bg); 
-            margin: 40px 10px; padding: 30px 25px; border-radius: 20px; 
-            box-shadow: 0 8px 20px rgba(0,0,0,0.06); display: flex; flex-direction: column;
+            width: 100%;
+            max-width: 600px; 
+            background: var(--card-bg); 
+            margin: 40px 10px; 
+            padding: 30px 25px; 
+            border-radius: 20px; 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.3s ease;
         }
 
         @media (max-width: 480px) {
-            .container { margin: 0; border-radius: 0; min-height: 100vh; padding: 6vh 20px 20px 20px; box-shadow: none; }
+            .container { 
+                margin: 0;
+                border-radius: 0; 
+                min-height: 100vh; 
+                padding: 6vh 20px 20px 20px; 
+                box-shadow: none;
+            }
         }
 
         .hidden { display: none !important; }
 
-        h1 { font-size: 28px; margin-bottom: 40px; color: var(--text-main); font-weight: bold; text-align: center; }
-        .title-highlight { 
-            background: linear-gradient(transparent 60%, #FFE082 40%);
-            padding: 0 5px;
-            color: var(--primary-color);
-            font-size: 32px;
-        }
-        body.normal-mode .title-highlight { background: linear-gradient(transparent 60%, #FFF2CC 40%); }
-        
-        .tripod-icon { font-size: 24px; vertical-align: middle; margin-left: 5px; opacity: 0.8; }
-
-        #home-screen {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-        }
-
+        /* 圖片樣式 */
         .q-image-container {
-            text-align: center; margin-bottom: 20px; background: #fff;
-            padding: 10px; border-radius: 12px; border: 1px solid var(--border-color);
+            text-align: center;
+            margin-bottom: 20px;
+            background: #fff;
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
         }
-        .q-image-container img { max-width: 100%; max-height: 200px; border-radius: 8px; }
+        .q-image-container img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+        }
 
-        .progress-bar { font-size: 14px; color: var(--primary-color); font-weight: 700; margin-bottom: 20px; }
-        .question-text { font-size: 19px; font-weight: 600; margin-bottom: 25px; line-height: 1.5; }
+        /* 首頁樣式 */
+        #home-screen { 
+            display: flex;
+            flex-direction: column; justify-content: center; align-items: center; min-height: 60vh; text-align: center;
+        }
+
+        /* 標題與圖示 */
+        h1 { font-size: 26px; margin-bottom: 40px; color: var(--text-main); font-weight: bold; }
+        .highlight-text { 
+            color: var(--primary-color); 
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 2px;
+            margin-right: 5px;
+        }
+        .tripod-icon {
+            display: inline-block;
+            vertical-align: middle;
+            width: 28px;
+            height: 28px;
+            fill: var(--primary-color);
+            margin-left: 5px;
+        }
+
+        .progress-bar { font-size: 14px; color: var(--primary-color); font-weight: 700; margin-bottom: 20px; letter-spacing: 0.5px; }
+        .question-text { font-size: 19px; font-weight: 600; margin-bottom: 25px; line-height: 1.5; color: var(--text-main); }
         
+        /* 選項樣式 */
         .option { 
-            display: block; width: 100%; padding: 16px; margin-bottom: 12px; 
+            display: block;
+            width: 100%; padding: 16px; margin-bottom: 12px; 
             border: 2px solid var(--border-color); border-radius: 12px; text-align: left; 
-            background: var(--card-bg); font-size: 16px; cursor: pointer; color: var(--text-main);
+            background: var(--card-bg); font-size: 16px; cursor: pointer;
             transition: all 0.2s ease;
+            color: var(--text-main);
         }
+        @media (hover: hover) { .option:hover { border-color: var(--primary-color); } }
 
-        .option.correct { border-color: var(--primary-color); background: #EAF0EC; color: var(--success-color); font-weight: bold; }
-        body.normal-mode .option.correct { background: #FFF9E6; }
+        .option.correct { border-color: var(--primary-color); background: rgba(234, 179, 8, 0.1); color: var(--success-color); font-weight: bold; }
         .option.wrong { border-color: var(--error-red); color: var(--error-red); }
 
-        #next-btn { 
-            width: 100%; padding: 18px; font-size: 18px; font-weight: bold; border: none; 
-            border-radius: 50px; cursor: pointer; color: white;
-            background: var(--success-color); margin-top: 25px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        /* 按鈕系統 */
+        .nav-group { display: flex; gap: 12px; margin-top: 20px; }
+        .big-btn { 
+            flex: 1;
+            padding: 18px; font-size: 18px; font-weight: bold; border: none; 
+            border-radius: 15px; cursor: pointer; transition: transform 0.1s, opacity 0.2s; color: white;
+            display: flex; align-items: center; justify-content: center; width: 100%;
         }
+        .big-btn:active { transform: scale(0.98); opacity: 0.9; }
 
-        .big-btn { width: 100%; padding: 18px; font-size: 18px; font-weight: bold; border: none; border-radius: 15px; cursor: pointer; color: white; margin-bottom: 15px; }
-        .start-btn { background: var(--primary-color); }
+        .start-btn { background: var(--primary-color); margin-bottom: 15px; }
         .bank-btn { background: var(--dark-gray); } 
-        .theme-btn { background: transparent; border: 2px solid var(--primary-color); color: var(--primary-color); padding: 10px 22px; font-size: 14px; font-weight: bold; border-radius: 30px; margin-top: 25px; cursor: pointer; }
-        .back-home { width: 100%; padding: 14px; margin-top: 25px; border-radius: 10px; border: 1px solid var(--dark-gray); background: transparent; color: var(--text-main); font-weight: bold; }
+        
+        .theme-btn { 
+            background: transparent;
+            border: 2px solid var(--primary-color); 
+            color: var(--primary-color); 
+            padding: 10px 22px; 
+            font-size: 14px; 
+            font-weight: bold;
+            border-radius: 30px;
+            margin-top: 25px; 
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .theme-btn:active { transform: scale(0.95); background: var(--border-color); }
+        
+        #next-btn { background: var(--success-color); margin-top: 25px; }
+        #bank-prev { background: var(--dark-gray); }
+        #bank-next { background: var(--success-color); }
+        
+        .back-home { 
+            width: 100%;
+            padding: 14px; margin-top: 25px; border-radius: 10px; 
+            border: 1px solid var(--dark-gray); background: transparent; color: var(--text-main); 
+            cursor: pointer; font-size: 15px; font-weight: bold;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div id="home-screen">
-        <h1><span class="title-highlight">測量丙級</span>練習系統<span class="tripod-icon">🔭</span></h1>
-        <div style="width: 100%; max-width: 320px;">
+        <h1>
+            <span class="highlight-text">測量丙級</span>練習系統
+            <svg class="tripod-icon" viewBox="0 0 24 24">
+                <path d="M12,2L4.5,20.29L5.21,21L12,18L18.79,21L19.5,20.29L12,2M11,7.07L7,16.46L11,14.67V7.07M13,7.07V14.67L17,16.46L13,7.07Z" />
+            </svg>
+        </h1>
+        <div style="width: 85%; max-width: 300px;">
             <button class="big-btn start-btn" onclick="initQuiz()">開始模擬測驗</button>
             <button class="big-btn bank-btn" onclick="showBankCategories()">題庫瀏覽模式</button>
         </div>
         <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">☀️ 切換為一般模式</button>
+        <p style="color: var(--dark-gray); font-size: 13px; margin-top: 25px;">系統會自動記憶您的顏色偏好設定</p>
     </div>
 
     <div id="quiz-screen" class="hidden">
         <div class="progress-bar" id="quiz-progress"></div>
         <div id="quiz-content">
             <div id="q-image-area" class="q-image-container hidden">
-                <img id="q-image-src" src="" alt="題目圖片">
+                <img id="q-image-src" src="" alt="題目圖示">
             </div>
             <div class="question-text" id="q-text"></div>
             <div id="q-options"></div>
         </div>
-        <button id="next-btn" class="hidden" onclick="loadNextQuestion()">下一題</button>
-    </div>
-
-    <div id="result-screen" class="hidden" style="text-align: center;">
-        <div style="font-size: 60px;">🏆</div>
-        <h2>測驗結束</h2>
-        <p id="score-text" style="font-size: 36px; font-weight: bold; color: var(--primary-color); margin: 15px 0;"></p>
-        <button class="big-btn start-btn" onclick="initQuiz()">再測一次</button>
-        <button class="back-home" onclick="goHome()">回首頁</button>
+        <button id="next-btn" class="big-btn hidden" onclick="loadNextQuestion()">下一題</button>
+        
+        <div id="result-screen" class="hidden" style="text-align: center; padding-top: 20px;">
+            <div style="font-size: 60px;">🏆</div>
+            <h2 style="margin-top: 15px; color: var(--text-main);">測驗結束</h2>
+            <p id="score-text" style="font-size: 36px; font-weight: bold; color: var(--primary-color); margin: 15px 0;"></p>
+            <button class="big-btn start-btn" style="width:100%" onclick="initQuiz()">再測一次</button>
+            <button class="back-home" onclick="goHome()">回首頁</button>
+        </div>
     </div>
 
     <div id="bank-category-screen" class="hidden">
-        <h2 style="text-align:center;">選擇章節</h2>
+        <h2 style="text-align:center; margin-bottom: 25px; color: var(--text-main);">選擇章節</h2>
         <div id="category-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
         <button class="back-home" onclick="goHome()">回首頁</button>
     </div>
@@ -144,67 +210,107 @@
     <div id="bank-view-screen" class="hidden">
         <div class="progress-bar" id="bank-progress"></div>
         <div id="bank-content"></div>
-        <div style="display: flex; gap: 10px; margin-top: 20px;">
-            <button class="big-btn bank-btn" style="flex:1" onclick="moveBank(-1)">上一題</button>
-            <button class="big-btn start-btn" style="flex:1" onclick="moveBank(1)">下一題</button>
+        <div class="nav-group">
+            <button id="bank-prev" class="big-btn" onclick="moveBank(-1)">上一題</button>
+            <button id="bank-next" class="big-btn" onclick="moveBank(1)">下一題</button>
         </div>
         <button class="back-home" onclick="showBankCategories()">返回列表</button>
     </div>
 </div>
 
 <script>
+    // 保持原本的邏輯
     const allQuestions = [
-        { category: "01：基本學能", question: "我國現時土地測量所採用之長度單位為", options: ["公尺", "市尺", "英尺", "台尺"], answer: 1 },
-        { category: "01：圖說識讀", question: "如下圖所示，建築圖上此符號代表", options: ["標高", "高帽落水頭", "直徑", "弧度"], answer: 1, image: "cq16.png" },
-        { category: "01：基本學能", question: "測量作業程序為", options: ["作業計畫→繪圖→測量→計算", "作業計畫→測量→計算→製圖", "作業計畫→計算→測量→製圖", "作業計畫→製圖→計算→測量"], answer: 2 },
-        { category: "02：儀器學", question: "水準儀之圓水準器主要作用為", options: ["粗略整平", "精確整平", "瞄準目標", "消除視差"], answer: 1 },
-        { category: "02：儀器學", question: "經緯儀整置時，首先應進行的是", options: ["定心", "整平", "定心與整平", "瞄準"], answer: 3 }
-    ];
-
-    function toggleTheme() {
-        document.body.classList.toggle('normal-mode');
-        const isNormal = document.body.classList.contains('normal-mode');
-        localStorage.setItem('theme', isNormal ? 'normal' : 'eye-care');
-        document.getElementById('theme-btn').innerText = isNormal ? "🌿 切換為護眼模式" : "☀️ 切換為一般模式";
-    }
-
-    window.onload = () => { if (localStorage.getItem('theme') === 'normal') toggleTheme(); };
-
-    function shuffle(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
+        {
+            category: "材料性質",
+            question: "混凝土的強度主要取決於？",
+            options: ["水灰比", "砂率", "水泥用量", "石子大小"],
+            answer: 1,
+            image: ""
+        },
+        {
+            category: "材料性質",
+            question: "水泥儲存時應防止？",
+            options: ["受潮", "過熱", "過冷", "強光"],
+            answer: 1,
+            image: ""
+        },
+        {
+            category: "施工規範",
+            question: "一般混凝土澆置後應至少養護幾天？",
+            options: ["3天", "7天", "14天", "28天"],
+            answer: 2,
+            image: ""
         }
-        return array;
-    }
-
-    function goHome() { location.reload(); }
+    ];
 
     let currentQuizPool = [];
     let currentIdx = 0;
     let score = 0;
 
+    function shuffle(array) {
+        let currentIndex = array.length, randomIndex;
+        while (currentIndex != 0) {
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+            [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+        }
+        return array;
+    }
+
+    function toggleTheme() {
+        const body = document.body;
+        body.classList.toggle('normal-mode');
+        const isNormal = body.classList.contains('normal-mode');
+        localStorage.setItem('theme', isNormal ? 'normal' : 'eye-care');
+        updateThemeBtn(isNormal);
+    }
+
+    function updateThemeBtn(isNormal) {
+        const btn = document.getElementById('theme-btn');
+        btn.innerHTML = isNormal ? "🌿 切換為護眼模式" : "☀️ 切換為一般模式";
+    }
+
+    window.onload = () => {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'normal') {
+            document.body.classList.add('normal-mode');
+            updateThemeBtn(true);
+        } else {
+            updateThemeBtn(false);
+        }
+    };
+
+    function goHome() {
+        document.getElementById('home-screen').classList.remove('hidden');
+        document.getElementById('quiz-screen').classList.add('hidden');
+        document.getElementById('bank-category-screen').classList.add('hidden');
+        document.getElementById('bank-view-screen').classList.add('hidden');
+    }
+
     function initQuiz() {
+        if (allQuestions.length === 0) return alert("題庫暫無資料");
         document.getElementById('home-screen').classList.add('hidden');
         document.getElementById('result-screen').classList.add('hidden');
+        document.getElementById('quiz-content').classList.remove('hidden');
         document.getElementById('quiz-screen').classList.remove('hidden');
-        const quizCount = Math.min(allQuestions.length, 20);
-        // 題目依然隨機，但選項固定
-        currentQuizPool = shuffle([...allQuestions]).slice(0, quizCount);
-        currentIdx = 0; score = 0;
+        
+        currentQuizPool = shuffle([...allQuestions]).slice(0, 20);
+        currentIdx = 0;
+        score = 0;
         loadQuizQuestion();
     }
 
     function loadQuizQuestion() {
         const q = currentQuizPool[currentIdx];
-        document.getElementById('quiz-progress').innerText = `題目 ${currentIdx + 1} / ${currentQuizPool.length}`;
+        document.getElementById('quiz-progress').innerText = `STEP ${currentIdx + 1} / ${currentQuizPool.length}`;
         document.getElementById('q-text').innerText = q.question;
         document.getElementById('next-btn').classList.add('hidden');
-
+        
         const imgArea = document.getElementById('q-image-area');
         const imgTag = document.getElementById('q-image-src');
         if (q.image) {
-            imgTag.src = q.image; 
+            imgTag.src = q.image;
             imgArea.classList.remove('hidden');
         } else {
             imgArea.classList.add('hidden');
@@ -213,22 +319,33 @@
         const optionsDiv = document.getElementById('q-options');
         optionsDiv.innerHTML = '';
 
-        // --- 已修改：移除 shuffle，直接按順序產生選項 ---
-        q.options.forEach((text, i) => {
-            const isCorrect = (i + 1 === q.answer);
+        const optionObjects = q.options.map((opt, i) => ({
+            text: opt,
+            isCorrect: (i + 1 === q.answer)
+        }));
+        shuffle(optionObjects);
+
+        optionObjects.forEach((optObj) => {
             const btn = document.createElement('button');
             btn.className = 'option';
-            btn.innerText = text;
+            btn.innerText = optObj.text;
             btn.onclick = () => {
                 const allBtns = optionsDiv.querySelectorAll('.option');
-                allBtns.forEach(b => b.style.pointerEvents = 'none'); 
-                if (isCorrect) {
-                    btn.classList.add('correct'); btn.innerText += " ✅"; score++;
+                allBtns.forEach(b => b.onclick = null); 
+                
+                if (optObj.isCorrect) {
+                    btn.classList.add('correct');
+                    btn.innerText += " ✅";
+                    score++;
                 } else {
-                    btn.classList.add('wrong'); btn.innerText += " ❌";
-                    // 顯示正確答案
-                    allBtns[q.answer - 1].classList.add('correct');
-                    allBtns[q.answer - 1].innerText += " ✅";
+                    btn.classList.add('wrong');
+                    btn.innerText += " ❌";
+                    optionObjects.forEach((item, idx) => {
+                        if (item.isCorrect) {
+                            allBtns[idx].classList.add('correct');
+                            allBtns[idx].innerText += " ✅";
+                        }
+                    });
                 }
                 document.getElementById('next-btn').classList.remove('hidden');
             };
@@ -238,11 +355,13 @@
 
     function loadNextQuestion() {
         currentIdx++;
-        if (currentIdx < currentQuizPool.length) loadQuizQuestion();
-        else {
-            document.getElementById('quiz-screen').classList.add('hidden');
+        if (currentIdx < currentQuizPool.length) {
+            loadQuizQuestion();
+        } else {
+            document.getElementById('quiz-content').classList.add('hidden');
+            document.getElementById('next-btn').classList.add('hidden');
             document.getElementById('result-screen').classList.remove('hidden');
-            document.getElementById('score-text').innerText = `${Math.round((score/currentQuizPool.length)*100)} 分`;
+            document.getElementById('score-text').innerText = `${Math.round((score / currentQuizPool.length) * 100)} 分`;
         }
     }
 
@@ -253,39 +372,54 @@
         document.getElementById('home-screen').classList.add('hidden');
         document.getElementById('bank-category-screen').classList.remove('hidden');
         document.getElementById('bank-view-screen').classList.add('hidden');
+        
         const categories = [...new Set(allQuestions.map(q => q.category))];
         const listDiv = document.getElementById('category-list');
         listDiv.innerHTML = '';
+        
         categories.forEach(cat => {
             const btn = document.createElement('button');
             btn.className = 'option';
             btn.style.textAlign = 'center';
+            btn.style.borderColor = 'var(--primary-color)';
+            btn.style.color = 'var(--primary-color)';
+            btn.style.fontWeight = 'bold';
             btn.innerText = cat;
-            btn.onclick = () => {
-                bankPool = allQuestions.filter(q => q.category === cat);
-                bankIdx = 0;
-                document.getElementById('bank-category-screen').classList.add('hidden');
-                document.getElementById('bank-view-screen').classList.remove('hidden');
-                renderBankItem();
-            };
+            btn.onclick = () => startBankView(cat);
             listDiv.appendChild(btn);
         });
     }
 
+    function startBankView(cat) {
+        bankPool = allQuestions.filter(q => q.category === cat);
+        bankIdx = 0;
+        document.getElementById('bank-category-screen').classList.add('hidden');
+        document.getElementById('bank-view-screen').classList.remove('hidden');
+        renderBankItem();
+    }
+
     function renderBankItem() {
         const q = bankPool[bankIdx];
-        document.getElementById('bank-progress').innerText = `${q.category} (${bankIdx+1}/${bankPool.length})`;
+        document.getElementById('bank-progress').innerText = `${q.category} (${bankIdx + 1}/${bankPool.length})`;
         const content = document.getElementById('bank-content');
-        let imgHTML = q.image ? `<div class="q-image-container"><img src="${q.image}"></div>` : '';
+        
+        let imgHTML = '';
+        if (q.image) {
+            imgHTML = `<div class="q-image-container"><img src="${q.image}"></div>`;
+        }
+        
         content.innerHTML = `${imgHTML}<div class="question-text">${q.question}</div>`;
-        q.options.forEach((txt, i) => {
+        
+        q.options.forEach((optText, i) => {
             const isAns = (i + 1 === q.answer);
-            content.innerHTML += `<div class="option ${isAns ? 'correct' : ''}">${txt} ${isAns ? '✅' : ''}</div>`;
+            content.innerHTML += `<div class="option ${isAns ? 'correct' : ''}">${optText} ${isAns ? '✅' : ''}</div>`;
         });
     }
 
     function moveBank(step) {
-        bankIdx = Math.max(0, Math.min(bankPool.length - 1, bankIdx + step));
+        bankIdx += step;
+        if (bankIdx < 0) bankIdx = 0;
+        else if (bankIdx >= bankPool.length) bankIdx = bankPool.length - 1;
         renderBankItem();
     }
 </script>
