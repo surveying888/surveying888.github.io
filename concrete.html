@@ -3733,7 +3733,7 @@
         document.getElementById('quiz-screen').classList.remove('hidden');
         
         // 隨機選出 20 題 (若不足則取全部)
-        currentQuizPool = shuffle([...allQuestions]).slice(0, 60);
+        currentQuizPool = shuffle([...allQuestions]).slice(0, 80);
         currentIdx = 0;
         score = 0;
         loadQuizQuestion();
