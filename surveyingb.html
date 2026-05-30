@@ -1,0 +1,6502 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>地籍測量乙級練習系統</title>
+    <style>
+        /* 預設：護眼模式 (舒適暖黃) */
+        :root {
+            --primary-color: #D4B853; 
+            --success-color: #A38C3B;  
+            --bg-color: #FDFCF7;      
+            --dark-gray: #B5AD98;      
+            --card-bg: #FFFFFF;        
+            --error-red: #E08A8A;      
+            --text-main: #5C5749;      
+            --border-color: #EFECE1;
+            --selected-bg: #FDF9EC; 
+        }
+
+        /* 一般模式 (明亮黃) */
+        body.normal-mode {
+            --primary-color: #FFD13B; 
+            --success-color: #D1A724;
+            --bg-color: #FFFEFA; 
+            --dark-gray: #A8A185;
+            --card-bg: #ffffff;
+            --error-red: #FF7A7A;      
+            --text-main: #4A463B;
+            --border-color: #FFF6D9;
+            --selected-bg: #FFFBF0; 
+        }
+
+        /* 基礎設定 */
+        * { -webkit-tap-highlight-color: transparent; user-select: none; box-sizing: border-box; }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: var(--bg-color); 
+            margin: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: flex-start;
+            min-height: 100vh;
+            color: var(--text-main);
+            transition: background-color 0.3s ease; 
+        }
+
+        .container { 
+            width: 100%;
+            max-width: 600px; 
+            background: var(--card-bg); 
+            margin: 40px 10px; 
+            padding: 30px 25px; 
+            border-radius: 20px; 
+            box-shadow: 0 8px 30px rgba(212,184,83,0.15);
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.3s ease;
+        }
+
+        @media (max-width: 480px) {
+            .container { 
+                margin: 0;
+                border-radius: 0; 
+                min-height: 100vh; 
+                padding: 6vh 20px 20px 20px; 
+                box-shadow: none;
+            }
+        }
+
+        .hidden { display: none !important; }
+
+        /* 標題設計 */
+        .main-title {
+            text-align: center;
+            margin-bottom: 40px;
+            line-height: 1.2;
+        }
+        .main-title .highlight {
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--primary-color);
+            display: block;
+            margin-bottom: 5px;
+            letter-spacing: 2px;
+        }
+        .main-title .sub {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+        .tripod-icon {
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 5px;
+            width: 24px;
+            height: 24px;
+            opacity: 0.8;
+        }
+
+        /* 圖片樣式 */
+        .q-image-container {
+            text-align: center;
+            margin-bottom: 20px;
+            background: #fff;
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .q-image-container img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+        }
+
+        /* 內容樣式 */
+        .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .progress-bar { font-size: 14px; color: var(--success-color); font-weight: 700; letter-spacing: 0.5px; }
+        .badge-type { background: var(--text-main); color: var(--card-bg); font-size: 12px; padding: 4px 8px; border-radius: 6px; font-weight: bold; }
+        .question-text { font-size: 19px; font-weight: 600; margin-bottom: 25px; line-height: 1.5; color: var(--text-main); }
+        
+        /* 選項樣式 */
+        .option { 
+            display: block;
+            width: 100%; padding: 16px; margin-bottom: 12px; 
+            border: 2px solid var(--border-color); border-radius: 12px; text-align: left; 
+            background: var(--card-bg); font-size: 16px; cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text-main);
+        }
+        @media (hover: hover) { .option:hover { border-color: var(--primary-color); background: var(--bg-color); } }
+
+        /* 複選選取中狀態 */
+        .option.selected { border-color: var(--primary-color); background: var(--selected-bg); font-weight: 600; }
+        
+        /* 對錯判定狀態 */
+        .option.correct { border-color: var(--primary-color); background: var(--selected-bg); color: var(--success-color); font-weight: bold; }
+        .option.wrong { border-color: var(--error-red); color: var(--error-red); background: #FFF5F5; }
+        .option.missed { border-color: var(--primary-color); color: var(--success-color); background: transparent; font-weight: bold; }
+
+        /* 按鈕系統 */
+        .nav-group { display: flex; gap: 12px; margin-top: 20px; }
+        .big-btn { 
+            flex: 1;
+            padding: 18px; font-size: 18px; font-weight: bold; border: none; 
+            border-radius: 15px; cursor: pointer; transition: transform 0.1s, opacity 0.2s; color: white;
+            display: flex; align-items: center; justify-content: center; width: 100%;
+        }
+        .big-btn:active { transform: scale(0.98); opacity: 0.9; }
+
+        .start-btn { background: var(--primary-color); margin-bottom: 15px; color: var(--text-main); }
+        .bank-btn { background: var(--dark-gray); } 
+        
+        .theme-btn { 
+            background: transparent;
+            border: 2px solid var(--primary-color); 
+            color: var(--text-main); 
+            padding: 10px 22px; 
+            font-size: 14px; 
+            font-weight: bold;
+            border-radius: 30px;
+            margin-top: 25px; 
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        #submit-btn { background: var(--primary-color); margin-top: 25px; color: var(--text-main); }
+        #next-btn { background: var(--success-color); margin-top: 25px; }
+        #bank-prev { background: var(--dark-gray); }
+        #bank-next { background: var(--success-color); }
+        
+        .back-home { 
+            width: 100%;
+            padding: 14px; margin-top: 25px; border-radius: 10px; 
+            border: 1px solid var(--dark-gray); background: transparent; color: var(--text-main); 
+            cursor: pointer; font-size: 15px; font-weight: bold;
+        }
+
+        /* 最小字備註說明 */
+        .legend-text {
+            font-size: 11px;
+            color: var(--dark-gray);
+            text-align: center;
+            margin-top: 15px;
+            letter-spacing: 0.5px;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="home-screen">
+        <div class="main-title">
+            <span class="highlight">地籍測量乙級</span>
+            <span class="sub">模擬練習系統 
+                <svg class="tripod-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12,2L4.5,20.29L5.21,21L12,18L18.79,21L19.5,20.29L12,2M12,5.84L17.14,18.25L12,15.96L6.86,18.25L12,5.84Z" />
+                </svg>
+            </span>
+        </div>
+        
+        <div style="width: 85%; max-width: 300px; margin: 0 auto;">
+            <button class="big-btn start-btn" onclick="initQuiz()">開始模擬測驗</button>
+            <button class="big-btn bank-btn" onclick="showBankCategories()">題庫瀏覽模式</button>
+        </div>
+        
+        <div style="text-align: center;">
+            <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">☀️ 切換為一般模式</button>
+            <p style="color: var(--dark-gray); font-size: 13px; margin-top: 25px;">系統會自動記憶您的顏色偏好設定</p>
+        </div>
+    </div>
+
+    <div id="quiz-screen" class="hidden">
+        <div class="progress-header">
+            <div class="progress-bar" id="quiz-progress"></div>
+            <div class="badge-type" id="question-type-badge">單選題 (1分)</div>
+        </div>
+        <div id="quiz-content">
+            <div id="q-image-area" class="q-image-container hidden">
+                <img id="q-image-src" src="" alt="題目圖示">
+            </div>
+            <div class="question-text" id="q-text"></div>
+            <div id="q-options"></div>
+        </div>
+        <button id="submit-btn" class="big-btn hidden" onclick="submitAnswer()">確認送出</button>
+        <button id="next-btn" class="big-btn hidden" onclick="loadNextQuestion()">下一題</button>
+        
+        <div id="quiz-legend" class="legend-text hidden">
+            備註：✅ 答對選項 &nbsp;|&nbsp; ⭕ 漏選正解 &nbsp;|&nbsp; ❌ 錯選答案
+        </div>
+
+        <div id="result-screen" class="hidden" style="text-align: center; padding-top: 20px;">
+            <div style="font-size: 60px;">🎉</div>
+            <h2 style="margin-top: 15px; color: var(--text-main);">測驗結束</h2>
+            <p id="score-text" style="font-size: 36px; font-weight: bold; color: var(--success-color); margin: 15px 0;"></p>
+            <p id="score-detail" style="font-size: 14px; color: var(--dark-gray); margin-bottom: 20px;"></p>
+            <button class="big-btn start-btn" style="width:100%" onclick="initQuiz()">再測一次</button>
+            <button class="back-home" onclick="goHome()">回首頁</button>
+        </div>
+    </div>
+
+    <div id="bank-category-screen" class="hidden">
+        <h2 style="text-align:center; margin-bottom: 25px; color: var(--text-main);">選擇章節</h2>
+        <div id="category-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
+        <button class="back-home" onclick="goHome()">回首頁</button>
+    </div>
+
+    <div id="bank-view-screen" class="hidden">
+        <div class="progress-bar" id="bank-progress"></div>
+        <div id="bank-content"></div>
+        <div class="nav-group">
+            <button id="bank-prev" class="big-btn" onclick="moveBank(-1)">上一題</button>
+            <button id="bank-next" class="big-btn" onclick="moveBank(1)">下一題</button>
+        </div>
+        <button class="back-home" onclick="showBankCategories()">返回列表</button>
+    </div>
+</div>
+
+<script>
+    // --- 題庫資料 ---
+    const allQuestions = [
+          {
+    "category": "01 : 儀器",
+    "question": "經緯儀觀測水平角時，採取正倒鏡之平均值，可消除：",
+    "options": ["定心誤差", "度盤刻劃誤差", "視準軸誤差", "望遠鏡之視差"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "大橋校正法，是指校正下列何項目？",
+    "options": ["十字絲的橫絲真正水平", "水準軸與垂直軸直交", "視準軸與水準軸平行", "十字絲橫線與垂直軸直交"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "直接水準測量時，使前視與後視之距離相等，其目的在：",
+    "options": ["消除視準軸與水準軸不平行所產生之誤差", "消除水準器氣泡未居中之誤差", "消除標尺不直立之誤差", "消除儀器下陷誤差"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "經緯儀之上下盤有離心誤差時，採用下列何種方式消除？",
+    "options": ["提高測角測回數", "降低測角測回數", "實施半半改正", "取AB二指標讀數之平均值"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "經緯儀之水平軸與垂直軸不相垂直時，其改正量為誤差的：",
+    "options": ["1/2", "1/3", "1/4", "1/5"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "經緯儀水平度盤水準器之校正，應用：",
+    "options": ["木樁校正法", "半半改正法", "直接校正法", "間接校正法"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "用一30公尺長之卷尺，量測A、B間之水平距離，得269.52公尺，今用精密方法檢定卷尺之長度為30.012公尺，則A、B間之實量距離應為：",
+    "options": ["269.52公尺", "268.60公尺", "269.63公尺", "270.04公尺"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "測尺之長度不合標準所產生之誤差屬於：",
+    "options": ["儀器誤差", "人為誤差", "天然誤差", "讀數誤差"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "測距尺檢定之目的，在求得：",
+    "options": ["拉力的影響", "溫度變化之影響", "中陷之影響", "確切之長度"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "經緯儀校正，採用半半改正法係校正：",
+    "options": ["望遠鏡水準器", "度盤水準器", "十字絲", "支架"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "水準測量不能藉前後視距離相等消除之誤差為：",
+    "options": ["大氣折光差", "地球弧面差", "儀器下陷之誤差", "視線與水準軸不平行之誤差"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "儀器之望遠鏡透鏡光心與十字絲交點之連線，為：",
+    "options": ["水平軸", "水準軸", "垂直軸", "視準軸"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "經緯儀垂直度盤係全周式，0°在天頂方向者，望遠鏡正置時，度盤讀數為：",
+    "options": ["垂直角", "天頂距", "仰角", "俯角"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "自望遠鏡中觀測遠方一目標，其經過十字絲交點到該目標之視線，稱為：",
+    "options": ["水平軸", "水準軸", "垂直軸", "視準軸"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "經緯儀四軸，分別為垂直軸V，水平軸H，水準軸L，視準軸Z，施行校正時，應先使：",
+    "options": ["H⊥V", "Z⊥L", "L⊥V", "Z⊥H"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "圖解法地籍測量採用之平板之為：",
+    "options": ["30cm×40cm", "40cm×50cm", "50cm×60cm", "60cm×70cm"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "下列何項裝置不屬於GPS之主要裝備？",
+    "options": ["接收儀", "天線", "電瓶", "指北針"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "所謂橫軸誤差，即：",
+    "options": ["水平軸不垂直於垂直軸", "視準軸不垂直於水準軸", "水平軸不平行於水準軸", "視準軸不垂直於垂直軸"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "經緯儀望遠鏡上下俯仰迴轉之中心，稱為：",
+    "options": ["水平軸", "垂直軸", "視準軸", "水準軸"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "電子測距經緯儀之構造中，其稜鏡組成，作為反射電波之用者為：",
+    "options": ["照準器", "控制器", "接收器", "反射器"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "自動水準儀能夠自動水平，是靠下列何項關鍵性裝置？",
+    "options": ["踵定螺旋", "補償器", "影像處理器", "符合氣泡"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "整置平板儀時，第一項工作乃是：",
+    "options": ["定平", "定心", "標定方向", "對準目標"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "新式經緯儀上之光學對準器之用途為：",
+    "options": ["定平", "定心", "讀數", "量測儀器高"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "新型威特T2經緯儀，其測微鼓之最小刻劃為多少秒？",
+    "options": ["5.0", "2.0", "1.0", "0.1"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "在直接水準測量中，下列何項為系統誤差？",
+    "options": ["視準軸不平行於水準軸", "紀錄錯誤", "計算錯誤", "溫度誤差"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "水準儀之望遠鏡加裝平行玻璃板，其目的為何？",
+    "options": ["精確讀定尺規", "避免陽光照射", "增加清晰度", "增加定平速度"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "高程測量，下列觀測方式，何者精度為最高？",
+    "options": ["氣壓高程測量", "直接水準測量", "三角高程測量", "視距高程測量"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "量距施測前與標準尺比較之作業，其目的是為求取：",
+    "options": ["偶然誤差", "系統誤差", "人為誤差", "讀數誤差"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "直角稜鏡若以兩個五角稜鏡上下疊成，其二反射面相交成：",
+    "options": ["30°", "45°", "90°", "135°"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "下列量距尺何者精度最高？",
+    "options": ["鋼捲尺", "因鋼尺", "布捲尺", "測繩"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "測量儀器能直接顯示觀測之水平角、垂直角、平距、斜距等數值，且能自動記錄者，稱為：",
+    "options": ["電子測距儀", "光學經緯儀", "全測站經緯儀", "電子經緯儀"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "下列何者不是電子測距儀(EDM)應加之改正？",
+    "options": ["傾斜改正", "氣象改正", "下垂改正", "頻率偏差改正"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "依據「地籍測量實施規則」規定，圖根測量採用之電子測距儀(EDM)施測，其儀器精度應精於：",
+    "options": ["5mm+20ppm", "5mm+15ppm", "5mm+10ppm", "5mm+5ppm"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "採用電子測距儀(EDM)量距時應照準：",
+    "options": ["標桿上端", "標桿下端", "稜鏡", "支架"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "方向觀測法常實施多測回觀測，每測回之原方向均須變換度盤讀數，其目的在消除：",
+    "options": ["視準軸與水平軸不垂直所生的誤差", "視準軸與垂直軸不垂直所生的誤差", "視準軸與水準管軸不垂直所生的誤差", "度盤刻畫誤差"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "儀器度盤刻畫誤差可藉由下列何種方式減小？",
+    "options": ["正倒鏡觀測", "半半改正法", "變換度盤位置", "加強水準氣泡居中"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "利用電子測距儀(EDM)量距計算應作之改正有下列哪些？",
+    "options": ["傾斜改正", "氣象改正", "下垂改正", "頻率偏差改正"],
+    "answer": [1, 2, 4],
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "在直接水準測量中，下列哪些不屬於系統誤差？",
+    "options": ["視準軸不平行於水準軸", "紀錄錯誤", "計算錯誤", "溫度誤差"],
+    "answer": [2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "下列哪些儀器之讀數，可藉取正倒鏡觀測讀數之平均值，以消除其幾何軸線不合要求所產生之誤差？",
+    "options": ["方向經緯儀", "工程經緯儀", "複測經緯儀", "電子經緯儀"],
+    "answer": [1, 2, 4],
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "經緯儀測量水平角時，常取正鏡及倒鏡觀測之平均結果，其目的不能消除：",
+    "options": ["直立軸誤差", "度盤刻畫誤差", "水平軸誤差", "望遠鏡視差現象"],
+    "answer": [1, 2, 4],
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "測量之主要基本觀測量為：",
+    "options": ["距離", "角度", "高差", "面積"],
+    "answer": [1, 2, 3],
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "下列經緯儀哪些能採複測角法施測？",
+    "options": ["方向經緯儀", "游標經緯儀", "工程經緯儀", "雙軸經緯儀"],
+    "answer": [2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "下列哪些方法無法進行經緯儀水平軸之校正？",
+    "options": ["分中法", "木樁校正法", "半半校正法", "對向觀測法"],
+    "answer": [2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "採用電子測距儀(EDM)量距時，不應照準：",
+    "options": ["稜鏡上端", "稜鏡下端", "稜鏡中心", "支架"],
+    "answer": [1, 2, 4],
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "複測角法適用於測讀：",
+    "options": ["方位角", "直接角", "偏角", "垂直夾角"],
+    "answer": [1, 2, 3],
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "經緯儀有視準軸偏心差時，下列哪些方法無法消除之？",
+    "options": ["正倒鏡觀測", "重複觀測", "偏心觀測", "對向觀測"],
+    "answer": [2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "下列何種經緯儀誤差可藉正倒鏡觀測取其平均值而消除之？",
+    "options": ["視準軸偏心誤差", "視準軸誤差", "度盤偏心誤差", "橫軸誤差"],
+    "answer": [1, 2, 4],
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "經緯儀各軸間之關係，下列敘述哪些正確？",
+    "options": ["望遠鏡水準軸平行於照準軸", "水準軸與垂直軸平行", "照準軸垂直於水平軸", "水平軸垂直於垂直軸"],
+    "answer": [1, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "01 : 儀器",
+    "question": "有關水準測量應注意事項，下列敘述哪些正確？",
+    "options": ["前、後視距離力求略等", "觀測時視線應穩定", "轉點需以尺墊鋪地", "整置水準儀處需土質疏鬆"],
+    "answer": [1, 2, 3],
+    "image": ""
+  },
+{
+    "category": "02：基本控制測量",
+    "question": "在一組未知數之真值間，有固定物理或幾何之條件存在，平差後所得之最或是值能滿足此條件，此種平差方法稱為：",
+    "options": ["直接觀測平差", "間接觀測平差", "條件觀測平差", "高斯約化法"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "推算每一三角形之未知邊，每次計算時均僅應用每一三角形之二角，此用於邊長計算之二角，稱為：",
+    "options": ["方向角", "方位角", "垂直角", "距離角"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "台灣地區橫麥卡托(Transverse Mercator)二度分帶坐標系統，中央子午線尺度比率為：",
+    "options": ["0.9999", "0.9996", "0.9995", "1"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "地圖投影所稱之子午線收歛角，亦稱：",
+    "options": ["方向角", "磁偏角", "製圖角", "垂直角"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "新國家坐標系統 TWD97，所採用之地球橢球體，其扁率 f 之值為：",
+    "options": ["1/298.00", "1/297.25", "1/298.26", "1/297.00"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "一個標準四邊形，實施條件平差時，其角條件數為：",
+    "options": ["2", "3", "4", "5"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "地籍測量測設三角補點之方法中，以下列何者精度最佳？",
+    "options": ["單三角法", "複三角法", "交會法", "四邊形法"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "三角測量選點時，單一三角形之形狀，以下列何者為最佳？",
+    "options": ["鈍三角形", "銳三角形", "等邊三角形", "等腰三角形"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "加密控制測量之水平角應觀測幾測回？",
+    "options": ["一測回", "二測回", "四測回", "八測回"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "三角測量時，測站之覘標中心、儀器中心及標石中心三者不在同一垂線時，應施行：",
+    "options": ["歸心化算", "高程化算", "化歸平均海水面", "球差改正"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "現行我國地籍測量之規定，縱橫線計算係採用：",
+    "options": ["蘭勃氏投影", "橫麥卡托投影", "彭納氏投影", "亞爾勃斯投影"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "橫麥卡托(Transverse Mercator)投影之圓柱軸與地軸互相：",
+    "options": ["斜交", "一致", "正交", "無關"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "三角測量水平角觀測，通常採用：",
+    "options": ["單角法", "偏角法", "方向觀測法", "方位角法"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "三角測量之基本圖形中，就圖形強度言，以下列何者為最好？",
+    "options": ["聚三角形", "多邊中點形", "單三角形", "有對角線之四邊形"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "三角測量時，三角形之內角以適應那一範圍為最佳？",
+    "options": ["20°~100°", "20°~150°", "30°~120°", "30°~150°"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依大地測量之觀點，地表兩點間之最短距離為：",
+    "options": ["直線", "圓弧", "直截線", "大地線"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "三角(邊)測量及精密導線測量所分之等級，所依據者為：",
+    "options": ["精度", "用途", "測量方法", "重要性"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "子午線收歛角為：",
+    "options": ["經過兩點之子午線在北極之交角", "真北與磁北之夾角", "真北與坐報北之夾角", "磁北與坐報北之夾角"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "地球弧面差之大小與距離：",
+    "options": ["成正比", "成反比", "之平方成正比", "之平方成反比"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "橫麥卡托投影依其投影性質區分，係屬於：",
+    "options": ["透視投影", "等面積投影", "正方向", "正形投影"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "三角形之內角愈尖銳，其圖形強度之值：",
+    "options": ["愈小", "愈大", "與內角之大小無關", "隨內角之減小而遞減"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "為避免縱橫線有負號出現，二度分帶橫麥卡托投影之坐標原點，縱坐標為零公尺，橫坐標西移：",
+    "options": ["15萬公尺", "25萬公尺", "35萬公尺", "50萬公尺"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "台灣地區地籍測量現行採用之橫麥卡托投影，其分帶之寬度為：",
+    "options": ["經度一度", "經度二度", "經度三度", "經度六度"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "電子測距之標準誤差，常以 ±(a+b ppm) 形式表示之，ppm 係表所量距離之：",
+    "options": ["十萬分之一", "一萬分之一", "一百萬分之一", "一千萬分之一"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "測線之方位角為190度時，其位於下列何象限？",
+    "options": ["第一象限", "第二象限", "第三象限", "第四象限"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "以坐標反算方位角時，縱坐標差 ΔN 為負值，橫坐標差 ΔE 為正值時，其方位角為：",
+    "options": ["象限角", "180°-象限角", "180°+象限角", "360°-象限角"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "閉合導線中，閉合差皆等於零之情況必須：",
+    "options": ["縱距閉合差等於零", "橫距閉合差等於零", "縱橫距閉合差皆等於零", "與縱橫距閉合差無關"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "縱距閉合差(ΔN)為0.12公尺，橫距閉合差(ΔE)為0.26公尺時，導線之平面閉合差為：",
+    "options": ["0.45公尺", "0.37公尺", "0.29公尺", "0.55公尺"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "地籍原圖上導線點之展點誤差必須在多少以內？",
+    "options": ["0.1mm", "0.2mm", "0.3mm", "0.4mm"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "圖解導線總邊長為650公尺，閉合差為0.5公尺時，其精度比為：",
+    "options": ["1/650", "1/770", "1/1050", "1/1300"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "一導線邊，其邊長為80公尺，水平角誤差為20秒，其偏差量為：",
+    "options": ["0.008公尺", "0.012公尺", "0.016公尺", "0.024公尺"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "平板導線係屬於：",
+    "options": ["計算導線", "測角導線", "圖解導線", "精密導線"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "導線計算時，其縱橫距之閉合差如超出公差時，首先應如何處理？",
+    "options": ["赴實地重新測量", "採用精密平差方法改正", "計算過程是否有誤重新核算", "修改觀測成果"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "實量邊長20公尺時，於比例尺1/500圖上之邊長為：",
+    "options": ["0.01公尺", "0.02公尺", "0.03公尺", "0.04公尺"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "為消除光波測距時空氣之折射率對訊號傳播速度之影響，通常於觀測距離之同時，尚須測量下列何者項目，以利改正數之計算？",
+    "options": ["氣壓", "溫度", "溫度與氣壓", "濕度與氣壓"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "以鋼卷尺直接量距時，如後尺手所讀之數為28.000公尺，前尺手所讀之數為0.350公尺，則距離為：",
+    "options": ["28.350公尺", "27.650公尺", "27.350公尺", "26.650公尺"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "在測區面積不大，地物擁塞之區，欲以有限人力經費作適當之控制測量，以測製大比例尺地圖，以採用下列何種方法最適宜？",
+    "options": ["三角測量", "三邊測量", "交會點測量", "導線測量"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "支導線之主要功能是：",
+    "options": ["提高幹導線測量精度", "為戶地測量作業方便", "檢查成果需要", "作成導線網需要"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "導線邊長100公尺，如照準覘標偏離點位0.5公分，則影響水平角之最大誤差為：",
+    "options": ["5\"", "10\"", "20\"", "44\""],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "施行圖解導線測量時，N為總邊數，且須小於或等於6，圖上閉合差之界限為：",
+    "options": ["0.2mm√N", "0.2mm", "0.3mm√N", "0.3mm"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "茲有一直角三角形，A角為60°，B角為30°，如A角對邊之長度為一公里，則B角對邊之長度應為：",
+    "options": ["1414公尺", "707.11公尺", "577.37公尺", "1732公尺"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "精密導線之角度觀測，通常採用：",
+    "options": ["外角法", "偏角法", "內外角同時觀測法", "內角法"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "三角形中之內角為 ∠A=80°、∠B=60°、∠C=40°，A、B、C三點之關係為順時鐘方向，若AB方位角為 ϕ_AB = 40°，則BC之方位角為：",
+    "options": ["130°", "140°", "150°", "160°"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "基本控制測量之邊長以電子測距儀測定時，下列何項需作改正？",
+    "options": ["標準尺長之改正", "重力改正", "張力改正", "曲率改正"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "水準測量規範中，閉合差 w 與水準路線長度 S 之關係為：",
+    "options": ["w與S成正比", "w與1/S成反比", "w與S²成正比", "w與√S成正比"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "基本控制測量之平差，應以下列何種方法計算之？",
+    "options": ["高斯分配法", "偏微分法", "統計平均法", "最小二乘法"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "設地球之長半徑 a = 6378160m，短半徑 b = 6356774m，則其扁率 f 等於：",
+    "options": ["1/300.25", "1/297.25", "1/298.25", "1/299.25"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "已知一閉合導線之縱距閉合差 Wn = +0.06m，橫距閉合差 We = -0.42m，閉合導線之總長為1600.00m，則閉合比數為：",
+    "options": ["1/3685", "1/4295", "1/4865", "1/5400"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "已知A點之 (E_A, N_A) 坐標為 E_A = 1005.40m，N_A = 1290.50m，A點至B點之水平距離為1920.60m，A點至B點方位角 ϕ_AB = 225°30'30\"，則B點坐標為：",
+    "options": ["E_B=2375.46m, N_B=2636.47m", "E_B=-364.66m, N_B=-55.47m", "E_B=2351.37m, N_B=2660.56m", "E_B=-340.57m, N_B=-79.56m"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "在三角圖形中，三角點之距離較遠得設補點，但應與其他幾個以上之三角點方向通視？",
+    "options": ["一個", "二個", "三個", "四個"],
+    "answer": 3,
+    "image": ""
+  },
+{
+    "category": "02：基本控制測量",
+    "question": "A、B兩點坐標分別為 E_A = 740.20m，N_A = 1160.60m，E_B = 920.40m，N_B = 1085.45m，則A點到B點之方位角 ϕ_AB 為：",
+    "options": ["67°22'48\"", "247°22'48\"", "112°38'16\"", "292°38'16\""],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "分別於二已知點A、B整置經緯儀並觀測 ∠PAB 與 ∠PBA，再據以求得P點之平面位置，此法稱之為：",
+    "options": ["前方交會", "後方交會", "側方交會", "旁點交會"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "以方向觀測組法進行水平角測量，若測回數為3，則每次變換度盤時之增量為：",
+    "options": ["120°", "60°", "45°", "30°"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "已知 AC = AB + BC，若AB與BC量測時所得其最或是值之中誤差為 ±0.2m，則之中誤差為：",
+    "options": ["±0.2√2 m", "±0.2/√2 m", "±0.01/√2 m", "±0.4m"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "S45°E 相當於方位角多少度？",
+    "options": ["45°", "135°", "90°", "315°"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "在未知點上設站，觀測三個已知點A、B、C的兩個角度 α 與 β，再根據 A、B、C 三已知點之坐標及 α、β 計算未知點坐標的方法，稱為：",
+    "options": ["前方交會", "後方交會", "側方交會", "光線法"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "已知A、B、C三點之縱橫坐標分別為 (100,100)、(300,900)、(300,500)，設D為AB之中點，現欲由C點測定D，則 ϕ_CD 等於：",
+    "options": ["0°", "90°", "180°", "270°"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "三角測量等權觀測時，已測得某三角形內角 ∠A=30°28'40\"、∠B=78°18'29\"、∠C=71°12'42\"，則各角之改正值為：",
+    "options": ["-3\"", "+3\"", "-9\"", "+9\""],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "一般三角高程測量在測距小於多少公尺時，可忽略地球曲率及大氣光折差？",
+    "options": ["1000m", "750m", "500m", "250m"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "當兩點間距離為1000m時，則此二點之地球曲率改正為：",
+    "options": ["0.08m", "0.8m", "0.05m", "0.5m"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "已知某條有8個三角形的三角鎖，按等精度測角後算得閉合差如下：-2.7\"、-0.6\"、+3.2\"、-1.9\"、+3.0\"、+1.7\"、+2.5\"、-0.8\"，試問三角形內角和的中誤差為：",
+    "options": ["±5.04\"", "±2.40\"", "±2.24\"", "±1.29\""],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "利用GPS 衛星定位測量所測得的高程為：",
+    "options": ["橢球高", "正高", "力高", "大地起伏"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "使用雙頻道之GPS衛星接收儀主要目的在消除：",
+    "options": ["週波未定值誤差", "多路徑誤差", "對流層誤差", "電離層誤差"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "GPS 衛星定位測量中，下列何者不屬於衛星傳送資料？",
+    "options": ["導航訊息", "天頂距離", "載波相位距離", "電碼距離"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "GPS 衛星定位測量中，測量調制了下列何種電碼？",
+    "options": ["C/A碼", "P碼", "C/A碼及P碼", "M碼"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "GPS 衛星定位測量，GPS衛星距離地表高度約為：",
+    "options": ["1100km", "11000km", "22200km", "20200km"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "GPS 衛星定位一次差（兩站觀測一衛星）可消除：",
+    "options": ["週波未定值誤差", "多路徑誤差", "接收機時錶誤差", "衛星時錶誤差"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "利用GPS衛星定位測量，欲得到三度空間位置，至少需接收幾個衛星？",
+    "options": ["二個", "三個", "四個", "五個"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "GPS 衛星定位測量，其太空部份GPS衛星分布於幾個軌道面？",
+    "options": ["3個", "6個", "8個", "12個"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "GPS 衛星定位測量各種誤差中，下列何者不屬於信號傳播誤差？",
+    "options": ["電離層誤差", "對流層誤差", "多路徑誤差", "衛星星曆誤差"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "GPS 衛星運行的週期約每多少小時繞地球一圈？",
+    "options": ["6小時", "8小時", "12小時", "24小時"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "以GPS 衛星接收儀實施基本控制測量時，下列何者不需要改正？",
+    "options": ["星曆改正", "電離層改正", "頻率偏差改正", "接收儀時錶改正"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "GPS 衛星測量L1頻率波長為：",
+    "options": ["0.19m", "1.9m", "19m", "190m"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "GPS 衛星定位測量的誤差與精度因子(DOP)關係為：",
+    "options": ["與DOP 成正比", "與DOP成反比", "與DOP 平方成正比", "與DOP平方成反比"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "以衛星接收儀實施控制測量，其觀測成果應以下列何項加以修正？",
+    "options": ["指標差改正", "垂線偏差改正", "時錶差改正", "視準軸偏差改正"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "GPS 衛星定位系統6個軌道上共配置多少顆GPS衛星？",
+    "options": ["8顆", "16顆", "24顆", "32顆"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "GPS 衛星定位系統P碼的波長約為：",
+    "options": ["0.293m", "2.93m", "29.3m", "293m"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "GPS 衛星測量所採用的坐標系統是：",
+    "options": ["GRS67", "TWD97", "GRS80", "WGS84"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "GPS 衛星測量對流層折射的影響，在下列何種角度時最小？",
+    "options": ["高度角90°", "高度角60°", "高度角45°", "高度角15°"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "下列GPS 衛星測量之GDOP值中，何者較適合觀測？",
+    "options": ["GDOP=13", "GDOP=12", "GDOP=11", "GDOP=9"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "二等衛星控制點，其邊長標準誤差要求為何？",
+    "options": ["5mm±1ppm", "5mm±2ppm", "10mm±1ppm", "10mm±2ppm"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "GPS 衛星定位系統是利用下列何種電波測量？",
+    "options": ["雷射波", "光波", "紅外線", "無線電波"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "GPS 衛星定位測量是利用下列何種原理求得地面點位坐標？",
+    "options": ["前方交會", "後方交會", "側方交會", "輻射法"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "在傾斜地使用鋼卷尺量得A、B兩點之斜距為123.475m，已知A點及B點之高程為25.422m及18.345m，則A、B兩點之水平距離等於：",
+    "options": ["123.374m", "123.272m", "123.454m", "123.435m"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "已知A、B兩點實際距離為59.970m，今使用30m鋼卷尺量得該段距離為60.000m，則該尺之實際長度為：",
+    "options": ["30.030m", "29.970m", "30.015m", "29.985m"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "自A點至B點造一平均坡度8%之道路，A點之高程為98m，B點之高程為118m，則AB兩點之斜距為：",
+    "options": ["260.80m", "250.80m", "240.80m", "230.80m"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "兩差改正中，大氣折光差約為地球曲率差之幾倍？",
+    "options": ["1/3", "1/7", "3", "7"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "設在平均高程738.22m處，量得一距離為17690.819m，設地球半徑 R=6372160m，則化算至平均海水面之距離為：",
+    "options": ["17688.770m", "17687.270m", "17685.770m", "17684.270m"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "觀測一三角形A,B,C（逆時針順序）其對應之內角分別為 α=57°53'20.1\"、β=62°23'32.1\"、γ=59°43'20.3\"，BC距離=40320m，則三角形之球面角超為：",
+    "options": ["3.7\"", "4.2\"", "8.8\"", "12.5\""],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "格林威治時間18時48分15秒，某地之標準時為10時37分42秒，則該地相對於格林威治之經度為何？",
+    "options": ["112°38'15\"W", "81°29'15\"W", "81°29'15\"E", "112°38'15\"E"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "某天文觀測於地方平時(L.A.T)9時52分56秒進行，該地為格林威治以西7時12分36秒，則格林威治平時(G.A.T)為：",
+    "options": ["19時52分56秒", "7時12分36秒", "2時40分26秒", "17時05分32秒"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "水準儀置於A,B兩點之間，觀測得A,B兩點水準尺讀數分別為1.235m及1.430m，若B點高程為20.750m，則A點高程為：",
+    "options": ["20.555m", "20.945m", "21.555m", "21.945m"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "一南北向環湖之水準路線，平均高程約200m，湖之北端緯度為42°00'N，水準測量時由北往南測，南端之緯度為40°40'N，則正高改正值等於：",
+    "options": ["0.012m", "0.024m", "0.048m", "0.060m"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "一水準測量，分別由A、B及不同之水準點引測至連接點E，假設第一條水準路線共計有9個測站，得E點之高程為320.48m，第二條水準路線共計有12個測站，得E點之高程為320.32m，第三條水準路線共計有4個測站，得E點之高程為320.89m，則E點之高程應為：",
+    "options": ["320.86m", "320.76m", "320.68m", "320.56m"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "已知B點之平面坐標(E,N)為(100.000m,100.000m)，AB之方位角 ϕ_AB = 210°00'00\"，AB之距離為100.000m，則A點之平面坐標為：",
+    "options": ["(150.000m,186.603m)", "(186.603m,150.000m)", "(50.000m,13.397m)", "(13.397m,50.000m)"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "導線 AB邊長500公尺，其方位角為60°，今已知A點之坐標 (E_A,N_A) 為(200,100)，則B點之坐標 (E_B,N_B) 為：",
+    "options": ["(633,350)", "(350,633)", "(450,533)", "(533,450)"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，二等乙級精密導線測量，經方位角平差後位置閉合差或閉合差比數不得超過多少？（K為導線長度之公里數）",
+    "options": ["0.08m裝 w或1/50000", "0.2m裝 w或1/20000", "0.4m裝 w或1/10000", "0.8m裝 w或1/5000"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "已知三角形A、B、C三個頂點，分別觀測 ∠A 與 ∠B 之水平角，假設其觀測之標準誤差均為10\"，今以計算方式求 ∠C 之值，則 ∠C 之標準誤差為：",
+    "options": ["6\"", "11\"", "14\"", "17\""],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "某一電子測距儀之精度為 5mm±5ppm，以該儀器量測一段1000公尺距離，則期望精度為何？",
+    "options": ["6mm", "9mm", "10mm", "13mm"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "利用電子測距儀觀測兩站之水平距離，不需觀測：",
+    "options": ["溫度", "氣壓", "儀器高", "垂直角"],
+    "answer": 3,
+    "image": ""
+  },
+{
+    "category": "02：基本控制測量",
+    "question": "一斜距為175.00m，傾角為5°02'10\"，則水平距離為多少？",
+    "options": ["175.68m", "175.32m", "174.68m", "174.32m"],
+    "answer": 4,
+    "image": ""
+},
+  {
+    "category": "02：基本控制測量",
+    "question": "標準長為30m之卷尺，與標準尺比較後，知其長為30.05m，今用此尺量一距離，得187.65m，問真實長度為何？",
+    "options": ["187.96m", "187.78m", "187.49m", "187.34m"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "使用水準儀及標尺求二點間之高程差屬於",
+    "options": ["三角高程測量", "氣壓水準測量", "間接水準測量", "直接水準測量"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "若A,B 兩點之坐標分別為 E_A=50m、N_A=10m，E_B=60m、N_B=20m，則 BA 之方位角為",
+    "options": ["45°", "135°", "225°", "315°"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "已知一閉合導線之縱距閉合差 Wn = +0.04m，橫距閉合差 We = -0.36m，閉合導線之總長為1555.51m，則閉合比數為",
+    "options": ["1/3890", "1/4290", "1/4860", "1/5400"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "動態GPS測量的關鍵在於快速的求解",
+    "options": ["衛星時錶差", "接收機時錶差", "衛星軌道誤差", "週波未定值"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "今以一30公尺鋼卷尺量得兩點間距為584.72公尺，但後來發現此鋼卷尺實際長為30.069公尺，則此兩點間距實際長度為多少公尺？",
+    "options": ["586.110", "586.129", "586.071", "586.065"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依地籍測量實施規定，目前我國所採用之橫麥卡托投影坐標系統為多少分帶？",
+    "options": ["2°", "3°", "4°", "6°"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "1967 大地參考系統(GRS67)所計算之扁平率為",
+    "options": ["1/297.0", "1/298.3", "1/298.247", "1/298.257"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "若溫度升高使測距尺增長，則所量測長度",
+    "options": ["變長，改正數為負", "變長，改正數為正", "變短，改正數為負", "變短，改正數為正"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "1997年測設出之磁方向角為 N23°E，磁偏角為 6°E；2000年時磁偏角為 3°W，則磁方位角讀數變為",
+    "options": ["N32°E", "N42°E", "N34°E", "N29°E"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "已知A點高程為300.18公尺，今在B點觀測A點覘標之垂直角為 5°58'01\"，AB兩點之距離為750.123公尺，儀器高為1.51公尺，覘標高為11.175公尺，求B點之高程為多少公尺？",
+    "options": ["238.6", "240.2", "231.4", "225.7"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "用30公尺鋼卷尺量測一坡度15%之距離，結果得240.6公尺，而此尺檢測得實際尺長為29.96公尺，試求其真正的平面距離應為",
+    "options": ["242.22", "255.7", "237.6", "280.4 公尺"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "下列三角形內角，何者圖形強度較佳？",
+    "options": ["30°, 60°, 90°", "30°, 30°, 120°", "45°, 45°, 90°", "60°, 60°, 60°"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "GPS 衛星測量中，同時對四顆以上的GPS衛星測距，要能辨別某個訊號是自那播送下來，則載波上的何種密碼可明確的提供量測傳播時間延遲？",
+    "options": ["PRN", "DPM", "NNSS", "GPS"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "下列何者不為GPS衛星信號之訊號分量？",
+    "options": ["載波", "測距碼", "導航訊息", "衛星影像"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "一般而言，平面測量之施測範圍，約在多少平方公里以內？",
+    "options": ["200", "300", "400", "500"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "用30公尺之鋼卷尺量距，經與標準尺比較時，發現該尺之實際長度應為30.002公尺。今已用此尺量得二點間之距離為345.555公尺，則該兩點間之實長應為多少公尺？",
+    "options": ["345.578", "345.532", "357.034", "334.065"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "在B點設站，觀測 A、C 點的水平角資料如下表，則其水平角 ∠ABC 為多少？\n* A 正: 0°00'00\" | 倒: 179°59'30\"\n* C 正: 125°10'20\" | 倒: 305°09'40\"",
+    "options": ["125°10'25\"", "125°10'20\"", "125°10'15\"", "125°10'10\""],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "天頂距 60°30'30\" 等於",
+    "options": ["仰角 29°29'30\"", "仰角 119°29'30\"", "俯角 29°29'30\"", "俯角 119°29'30\""],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "若A、B兩點之橫縱坐標分別為 E_A = 100m, N_A = 200m, E_B = 200m, N_B = 100m，則BA之方位角為",
+    "options": ["135°", "S45°E", "315°", "S45°W"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "有一正三角形，順時鐘方向排列ABC，今測得AB邊之方位角為100°，則CA邊之方位角為",
+    "options": ["160°", "220°", "340°", "280°"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "用全周式經緯儀讀垂直角，0在天頂方向，今測得某旗桿縱轉前後之讀數分別為30°及330°，則該旗桿之垂直角應為",
+    "options": ["+30°", "+60°", "-30°", "-60°"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "在三角形ABC等權觀測中，已測得 ∠B=30°28'39\"、∠C=88°18'28\"、∠A=61°12'44\"，則各角之改正值為",
+    "options": ["+3\"", "-3\"", "+9\"", "-9\""],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "若以 n 代表角的數目，多邊形之內角總和應為",
+    "options": ["n·180°", "n·360°", "(n+2)·180°", "(n-2)·180°"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "設某三角形ABC三內角之值為已知，其相對應之邊為a、b、c，今若已知b邊，則求a邊邊長的式子為",
+    "options": ["b·sinA/sinB", "b·sinB/sinA", "sinA/(b·sinB)", "sinB/(b·sinA)"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "某閉合導線共有七個點，則理論上其外角總和應為",
+    "options": ["900°", "1620°", "1260°", "1440°"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "導線 AB邊長500公尺，其方位角為30°，今已知A點之坐標(E,N)為(200,100)，則B點之坐標(E,N)為",
+    "options": ["(450,133)", "(450,533)", "(-50,533)", "(-50,133)"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "系統誤差之大小，與觀測次數",
+    "options": ["成反比", "成正比", "平方根成反比", "平方根成正比"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "將各種誤差自乘方的平均值經開方後，所得之值稱為",
+    "options": ["平均誤差", "或然誤差", "中誤差", "系統誤差"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "所謂測站平差，是指在一測站周圍所測得之",
+    "options": ["水平角", "垂直角", "邊長", "高程之和，合於理論上之定值"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "有一正三角形，順時鐘方向排列ABC，今測得BA邊之方位角 ϕ_BA = 270°，則CA 邊之方位角 ϕ_CA 為",
+    "options": ["30°", "120°", "210°", "330°"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "地籍圖重測時，依法應以下列何者為實施單位？",
+    "options": ["縣(市)", "鄉(鎮)", "區", "段"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "基本控制測量之平差，應依下列何種方法計算？",
+    "options": ["最大自乘法", "最小自乘法", "最小開方法", "自行調整"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "已知於X-Y平面上之A、B兩點距離為 d，若A、B方位角 ϕ_AB 之偏差為 20.6\"，則因此而產生之B點平面位置偏差約為",
+    "options": ["d·10⁻³", "d·10⁻⁴", "d·10⁻⁵", "d·10⁻⁶"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "一測線實地測量之斜距與高差分別為 50.50±0.02m 與 2.50±0.02m，則該測線之水平距及其中誤差為",
+    "options": ["50.44±0.02m", "50.50±0.04m", "48.00±0.02m", "48.00±0.04m"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "在導線測量中，通常要求角度測量與距離測量之精度相當，依此觀念，若測量之距離為200.00m，距離誤差為1.94cm，則其相應之角度誤差為",
+    "options": ["10\"", "15\"", "20\"", "25\""],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "已知A、B兩點之橫縱坐標為 E_A = 100.00m, N_A = 100.00m，E_B = 200.00m, N_B = 200.00m，則由A點至B點之方位角 ϕ_AB 為",
+    "options": ["45°", "135°", "225°", "315°"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "埋設三角點標石時，刻點號之方向應指向",
+    "options": ["東方", "南方", "西方", "北方"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "一附合導線如下圖所示，若各角度觀測之中誤差均為 ±15\"，則該導線之方位角閉合差之中誤差為",
+    "options": ["±30\"", "±33.5\"", "±75\"", "±60\""],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "已知A點之平面坐標(E,N)為(100.000m,100.000m)，AB之方位角 ϕ_AB = 210°00'00\"，AB之距離為100.000m，則B點之平面坐標為",
+    "options": ["(150.000m, 186.603m)", "(50.000m, 13.397m)", "(186.603m,150.000m)", "(13.397m,50.000m)"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "已知A、B、C三點之平面坐標(E,N)，分別為 (0m,0m)、(100m,10m) 及 (50m,60m)，則三角形ABC之面積為",
+    "options": ["5500m²", "5000m²", "2750m²", "2500m²"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "以前方交會法進行數值法戶地測量，已知A、B兩點之平面坐標(E,N)分別為 (0.000m,0.000m) 及 (100.000m,0.000m)。現觀測得 α = 60°00'00\"，β = 45°00'00\"，則P點坐標為",
+    "options": ["(36.603m,63.397m)", "(63.397m,36.603m)", "(50.000m,86.603m)", "(46.521m,72.213m)"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "利用 GPS 實施控制測量作業時，重要圖根點位置之選擇應考量以點對方式布設，相鄰兩點以多少公尺為原則，以滿足後續土地複丈補設圖根點之需求？",
+    "options": ["50", "100", "300", "500"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "臺灣地區之大地方位角係由何方位起算？",
+    "options": ["正東", "正西", "正南", "正北"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "旋轉橢球體表面上，通過某點在於該點子午圈面上之法線與赤道平面之交角，稱為",
+    "options": ["地心緯度", "化成緯度", "大地經度", "大地緯度"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "通过格林威治之子午圈與通過一點子午圈間之夾角，稱為",
+    "options": ["大地緯度", "大地經度", "大地方位角", "大地方向角"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "橢球體上兩點間之最短距離，稱為",
+    "options": ["地心距", "最短距", "平距", "大地線"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "旋轉橢球體上，某點重力方向與法線方向間之夾角，稱為",
+    "options": ["重力偏差", "離心力", "向心力", "垂線偏差"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "實施長距離之三角高程測量需考慮什麼改正？",
+    "options": ["垂線偏差改正", "大地起伏改正", "兩差改正", "重力改正"],
+    "answer": 3,
+    "image": ""
+  },
+{
+    "category": "02：基本控制測量",
+    "question": "進行大地測量時，約200平方公裡面積的三角形，其球面角超約為多少秒？",
+    "options": ["0.5", "1.0", "1.5", "2.0"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "進行大地測量時，兩點相差1公left的地球曲率長約為",
+    "options": ["5公分", "8公分", "11公分", "14公分"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "三角測量之圖形通常規定三角形內角最大不可超過",
+    "options": ["110°", "120°", "140°", "160°"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "三角測量之圖形，通常規定三角形內角最小不得小於",
+    "options": ["10°", "20°", "30°", "44°"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "單三角鎖最適用於下列何種地區之控制測量？",
+    "options": ["沼澤地區", "高山地區", "狹谷地區", "森林地區"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "大地線由觀測所得之截面方向化歸為大地線方向之改正，稱為",
+    "options": ["標高差改正", "垂線偏差改正", "截面差改正", "大地線改正"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "當測站與各方向不在同一水準面上時，視準點高度影響所測方位角時須進行",
+    "options": ["標高差改正", "截面差改正", "大地方位角改正", "垂線偏差改正"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "將觀測高程化為基隆平均海水面起算之統一標高，應進行",
+    "options": ["潮汐改正", "力高改正", "正高改正", "正常高改正"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "某一測線長為20公尺，其方位角為240°，則其縱距為",
+    "options": ["-5公尺", "-10公尺", "+5公尺", "+10公尺"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "用交會法測定地物點時，兩線之交角以下列何者為佳？",
+    "options": ["45°", "90°", "135°", "180°"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "已知二點間之高差為 4.00公尺，斜距為80.00公尺，則其平距應為",
+    "options": ["79.80公尺", "79.85公尺", "79.90公尺", "79.95公尺"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "已知一三角形之兩邊長為10公尺、20公尺，且其夾角為30°，試計算此三角形之面積為",
+    "options": ["45平方公尺", "50平方公尺", "55平方公尺", "60平方公尺"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "在二未知點設測站對兩已知點施行水平角觀測，以求測站之位置，稱為",
+    "options": ["後方交會法", "前方交會法", "側方交會法", "兩點法"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "在二已知點設測站對一未知點施行水平角觀測，以求未知點之位置，稱為",
+    "options": ["後方交會法", "前方交會法", "側方交會法", "兩點法"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "須考慮地球之曲度的測量作業，稱為",
+    "options": ["平面測量", "面積測量", "大地測量", "天文測量"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "一等水準測量下絲之視線讀數不得低於",
+    "options": ["0.1公尺", "0.2公尺", "0.3公尺", "0.4公尺"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "一等水準測量上絲之視線讀數不得高於",
+    "options": ["2.5公尺", "2.6公尺", "2.7公尺", "2.8公尺"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "三角高程測量係依據兩已知點間測定下列何種觀測量，以推算其高程？",
+    "options": ["距離角", "水平角", "天頂距", "方位角"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "已知兩點之經緯度，計算兩點間之邊長及正反方位角，稱為",
+    "options": ["大地位置正算", "大地位置反算", "大地線正算", "大地線反算"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "實施三角測量進行基線擴大時，不得超過下列何者為限？",
+    "options": ["2次", "3次", "4次", "5次"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "球面三角形三內角之和數較180度略大，此略大之值稱為",
+    "options": ["閉合差", "球面角超", "角度誤差", "球面偏差"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "利用導線進行控制測量，不需要之觀測量為",
+    "options": ["角度", "高程", "方位角", "距離"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "下列何者為與導線外業測量較無直接關係之工作項目？",
+    "options": ["測量距離", "測量角度", "計算坐標", "計算面積"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "實施三角測量時必須有一已知",
+    "options": ["角度", "邊長", "方向", "垂直角"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "下列何者屬於面狀地面控制測量？",
+    "options": ["基線測量", "導線測量", "三角測量", "交會測量"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "臺灣地區1997大地基準(TWD97)及參考坐標系統之訂定，係採用",
+    "options": ["三角三邊測量", "精密導線測量", "衛星定位測量", "光達測量"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "臺灣地區 TWD97坐標系的地圖投影方式係採用下列何者？",
+    "options": ["橫麥卡托投影經差一度分帶", "橫麥卡托投影經差二度分帶", "橫麥卡托投影經差三度分帶", "橫麥卡托投影經差六度分帶"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "臺灣地區 TWD97坐標系，澎湖、金門及馬祖等地區之中央子午線定於下列何者？",
+    "options": ["東經119°", "東經120°", "東經121°", "東經122°"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，衛星追蹤站之測量，係採用下列何種方式？",
+    "options": ["動態衛星測量", "快速靜態衛星測量", "虛擬動態衛星測量", "長期靜態衛星測量"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "以衛星定位測量方法實施一等基本控制測量，在95%信心區間其成果精度為多少？（單位：毫米；L為單一基線長度之公里數）",
+    "options": ["≤(50+1×10⁻⁶L)", "≤(50+2×10⁻⁶L)", "≤(10+1×10⁻⁶L)", "≤(10+2×10⁻⁶L)"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "以精密導線測量方法實施二等乙級基本控制測量，經方位角平差後，位置閉合差應為多少？（單位：公尺；K為導線長度之公里數）",
+    "options": ["0.04√K", "0.08√K", "0.2√K", "0.4√K"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "以精密導線測量方法實施一等基本控制測量，邊長測量標準誤差應為多少？",
+    "options": ["1/120,000", "1/300,000", "1/600,000", "1/1,000,000"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "以衛星定位測量方法實施加密控制測量，其基線重複觀測水平份量之差值應為多少？（單位：毫米）",
+    "options": ["≤(75+6×10⁻⁶L)", "≤(50+6×10⁻⁶L)", "≤(30+6×10⁻⁶L)", "≤(15+6×10⁻⁶L)"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "以衛星定位測量方法實施加密控制測量，其閉合圈總邊長不得大於多少公里？",
+    "options": ["50", "40", "30", "20"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，以精密導線測量方法實施加密控制測量，下列敘述何者不正確？",
+    "options": ["水平角觀測需使用1秒讀的儀器", "成果精度閉合比不得超過1/20,000", "邊長測量標準誤差為1/60,000", "水平角觀測4測回"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，以三角三邊測量實施加密控制測量，其成果滿足幾何條件後，位置閉合比數不得超過多少？",
+    "options": ["1/10,000", "1/20,000", "1/50,000", "1/60,000"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，以衛星定位測量方法實施二等基本控制測量，下列敘述何者不正確？",
+    "options": ["使用精密星曆", "邊長標準誤差不大於 (50+1×10⁻⁶L)（L為單一基線長度之公里數）", "圖形閉合差各份量之平均閉合差不大於25公分", "各閉合圈中之基線數不大於10"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，有關基本控制測量，下列何者不正確？",
+    "options": ["觀測值應依精度要求加以適當之改正", "成果應以最小自乘平差方法計算", "成果表應予永久保存", "基本控制系(網)圖以衛星定位測量方法實施時，須組成觀測方向線"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，基本控制測量之地心坐標框架係依國際地球參考框架及國際時間局所定之標準時刻方位建構而成，標準時刻方位係指",
+    "options": ["1980.0之方位", "1984.0之方位", "1986.0之方位", "1994.0之方位"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "基本測量包括測量基準之測量與基本控制測量，以下列何者機關辦理為原則？",
+    "options": ["直轄市或縣(市)主管機關", "中央主管機關", "土地產權主管機關", "any測量主管機關"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "辦理基本測量設置永久測量標，需用公、私有土地或建築物時，下列敘述何者不正確？",
+    "options": ["需用公有土地時，在任何情況下均不得拒絕", "需設置於公有建築物時，應優先提供使用", "需用私有土地時，應先徵得土地所有權人或管理人同意無償提供使用", "需用私有建築物時，應先徵得土地所有權人或管理人同意無償提供使用"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，使用1秒讀的儀器實施二等甲級精密導線測量之水平角觀測，其測回數應為多少？",
+    "options": ["6", "8", "12", "16"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，二等乙級三角測量，單三角閉合差不得超過多少秒？",
+    "options": ["10", "5", "3", "1"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則\"規定，二等乙級精密導線測量水平角觀測，各觀測值與平均值之差不得超過多少秒？",
+    "options": ["10", "8", "6", "5"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則\"規定，二等乙級三角測量之邊長測量，其測回數應為多少？",
+    "options": ["2", "4", "6", "8"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，二等乙級三角測量三角形閉合差平均值不得超過多少秒？",
+    "options": ["1.2", "2.3", "3", "5"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，有關加密控制測量，下列敘述何者不正確？",
+    "options": ["實施範圍以所在直轄市或縣(市)區域為原則", "實施前應先檢測基本控制點", "得以精密導線測量為之", "其實施程式與基本控制測量不同"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，加密控制測量之實施範圍，以下列何者為原則？",
+    "options": ["臺、澎、金等地區", "臺灣本島", "所在直轄市或縣(市)", "所在直轄市或縣(市)之各區（或鄉鎮市）"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "基本測量由中央主管機關辦理為原則，其他機關辦理基本測量時，其實施計畫應經中央主管機關同意。其他機關辦理之測繪成果，下列敘述哪些符合國土測繪法之規定？",
+    "options": ["應於完成三個月內送中央主管機關審查", "應於完成六個月內送中央主管機關審查", "測繪成果修正時，應於完成六個月內送中央主管機關審查", "軍事機關辦理基本測量有涉及軍事機密者，不受時間規定之限制"],
+    "answer": [2, 3, 4],
+    "image": ""
+  },
+{
+    "category": "02：基本控制測量",
+    "question": "下列哪些是國土測繪法規定的基本測量之相關事項？",
+    "options": ["測量基準之測量", "基本控制測量", "加密控制測量", "地籍測量"],
+    "answer": [1, 2],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "中央主管機關或其他機關辦辦理基本測量設置永久測量標，需用公、私有土地或建築物時，應依規定辦辦理，下列敘述哪些正確？",
+    "options": ["需用公有土地時，在不妨礙原使用情況下，管理機關(構)除有正當原因並報經其上級機關核准外，不得拒絕", "需設置於公有建築物者，在不妨礙建築物原使用情況下，應先通知其管理機關(構)，優先提供使用", "需用私有土地時，應先徵得土地所有權人或管理人同意有償提供使用", "需設置於私有建築物者，應先徵得建築物所有權人或管理人同意有償提供使用。"],
+    "answer": [1, 2],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "中央主管機關或其他機關之測量人員因辦辦理基本測量須進入公、私有土地或建築物勘查或測量時，應於7日前通知下列哪些人？",
+    "options": ["所有權人", "債權人", "管理人", "使用人"],
+    "answer": [1, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "申請永久測量標遷移重建所需費用，下列敘述哪些為正確？",
+    "options": ["提供公有土地或建築物使用者不需負擔", "有償提供私有土地或建築物使用者不需負擔", "出租私有土地或建築物無償提供使用者不需負擔", "無償提供私有土地或建築物使用者不需負擔"],
+    "answer": [1, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "在永久測量標上堆積雜物、懸掛繩索或塗抹污損，致妨礙永久測量標效用者，應由下列哪些機關限期令其恢復原狀？",
+    "options": ["直轄市政府", "縣(市)政府", "鄉、鎮公所", "市(區)公所"],
+    "answer": [1, 2],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "中央主管機關公告測量基準、參考系統時，應記載之事項，包含下列哪些？",
+    "options": ["測設機關", "名稱", "基準數據", "站址、點位圖說"],
+    "answer": [2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "中央主管機關公告之1997坐標系統(TWD97)，其內容包括哪些？",
+    "options": ["地心坐標框架", "參考橢球體", "地圖投影方式採用麥卡托投影經差二度分帶", "地圖投影方式採用橫麥卡托投影經差二度分帶"],
+    "answer": [1, 2, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "臺灣地區地圖投影方式採用橫麥卡托投影經差二度分帶，下列敘述哪些正確？",
+    "options": ["臺灣、小琉球、綠島、蘭嶼及龜山島等地區之中央子午線定於東經123度", "澎湖、金門及馬祖等地區之中央子午線定於東經121度", "臺灣、小琉球、綠島、蘭嶼及龜山島等地區之中央子午線定於東經121度", "澎湖、金門及馬祖等地區之中央子午線定於東經119度"],
+    "answer": [3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，下列哪些基本控制測量之坐標值計算，應以中央主管機關所定之坐標系統為依據？",
+    "options": ["地心坐標", "橢球坐標", "平面坐標", "天文坐標"],
+    "answer": [1, 2, 3],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，中央主管機關應選定下列哪些站址點位作為高程基準，並將其測量成果作為訂定高程系統之依據？",
+    "options": ["潮位站", "三角點", "水準原點", "精密導線點"],
+    "answer": [1, 3],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，中央主管機關應選定哪些站址點位作為重力基準，並將其測量成果作為訂定重力系統之依據？",
+    "options": ["水準點", "重力基準站", "三角點", "絕對重力點"],
+    "answer": [2, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，中央主管機關應選定哪些站址點位作為深度基準，並將其測量成果作為訂定深度系統之依據？",
+    "options": ["潮位站", "衛星追蹤站", "深度原點", "水準原點"],
+    "answer": [1, 3],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，測量基準之測量事項包含下列哪些？",
+    "options": ["選址及站址、點位之設置", "觀測、計算及調製成果圖表", "自動觀測數據之傳輸及建檔", "站址、點位之管理及維護"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，測量基準之測量事項包含下列哪些？",
+    "options": ["實施追溯檢校之行為", "觀測不確定度之評估", "站址、點位之變動量分析", "其他與測量基準相關之測量"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "臺灣地區地圖投影方式採用橫麥卡托投影經差二度分帶，下列敘述哪些正確？",
+    "options": ["中央子午線尺度比為0.9999", "中央子午線尺度比為0.9996", "中央子午線定於東經121度", "中央子午線定於東經119度"],
+    "answer": [1, 3],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則\"規定，潮位站之長期觀測成果，應作為下列哪些點位測量之依據？",
+    "options": ["絕對重力點", "精密導線點", "水準原點", "深度原點"],
+    "answer": [3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，下列哪些測量應為長期自動觀測，其成果並應作統計分析？",
+    "options": ["地形測站之測量", "衛星追蹤站之測量", "潮位站之測量", "重力基準站之測量"],
+    "answer": [2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，下列哪些點位應設置為雙(正、副)點位並定期檢測之？",
+    "options": ["水準原點", "深度原點", "三角點", "絕對重力點"],
+    "answer": [1, 2, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，下列哪些應設置為雙(正、副)點位並定期檢測之？",
+    "options": ["深度基準站", "衛星追蹤站", "潮位站", "重力基準站"],
+    "answer": [2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則\"規定，基本控制測量得依適用場合、作業方法及精度之差異，區分為下列哪些等級？",
+    "options": ["一等", "二等", "三等", "四等"],
+    "answer": [1, 2, 3],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，基本控制測量得以下列哪些測量方法為之？",
+    "options": ["衛星定位測量", "三角測量", "重力測量", "水準測量"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則\"規定，基本控制測量得以下列向些測量方法為之？",
+    "options": ["三角測量", "深度測量", "精密導線測量", "衛星定位測量"],
+    "answer": [1, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，下列哪些為基本控制測量之實施事項？",
+    "options": ["網形設計及精度評估", "作業規劃", "儀器裝備購置", "觀測及計算"],
+    "answer": [1, 2, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，基本控制測量所設置之點位為基本控制點，應依實施計畫方式加註下列哪些項目？",
+    "options": ["等級", "點號", "設置機關名稱", "設置人員"],
+    "answer": [1, 2, 3],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "基本控制測量所設置之點位為基本控制點，依設置方法區分之點位名稱，下列敘述哪些正確？",
+    "options": ["採衛星定位測量方法設置者，以衛星控制點稱之", "採水準測量方法設置者，以水準點稱之", "採重力測量方法設置者，以重力點稱之", "採三角測量方法設置者，以三角點稱之"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，控制點之選點條件為",
+    "options": ["衛星控制點應設置於透空度良好之位置", "衛星控制點應設置於衛星訊號接收良好之位置", "三角點之選點，應設置於相鄰各點互相通視，且展望良好之位置", "精密導線點之選點，應設置於相鄰各點互相通視，且展望良好之位置"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，水準點之選點條件為",
+    "options": ["應設置於通視良好之位置", "應設置於透空度良好之位置", "沿測設路線均勻布設為原則", "應設置於地質條件穩定之位置"],
+    "answer": [1, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，重力點之選點條件為",
+    "options": ["地質條件穩定", "附近無經常明顯震動", "附近無電壓、磁場", "附近無質量異常之位置"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，基本控制點經下列哪些工作後，應調製點之紀錄，作為實施基本控制測量之參考？",
+    "options": ["清查", "選點", "觀測", "埋點"],
+    "answer": [1, 2, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，基本控制測量之網形，應依下列哪些項目設計，並依其精度評估結果調整之？",
+    "options": ["測量方法", "精度規範", "儀器精密度", "點位分布及觀測數目"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，基本控制測量所使用之儀器裝備，應符合下列哪些規定？",
+    "options": ["應依實施計畫之校正項目", "應週期辦理校正", "由國家度量衡標準實驗室校正", "可由簽署國際實驗室認證聯盟相互承認辦法之認證機構所認證之實驗室校正"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "基本控制測量之觀測成果，應採用下列何種平差計算方法為之？",
+    "options": ["最小自乘法", "簡易平差法", "圖解平差法", "嚴密坐標平差法"],
+    "answer": [1, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，基本控制點計算完竣後，應完成下列哪些資料？",
+    "options": ["結果清冊", "調製成果表", "基本控制系(網)圖", "圖根網絡圖"],
+    "answer": [2, 3],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則\"規定，基本控制點成果表應記載基本控制點之下列哪些項目？",
+    "options": ["點號、種類", "等級、材質", "土地坐落、點位略圖、點位數據", "施測照片及施測單位"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，基本控制系(網)圖，應記載下列哪些項目？",
+    "options": ["點號", "將觀測方向以直線連接成觀測方向線", "以衛星定位測量方法實施者，不須組成觀測方向線", "以衛星定位測量方法實施者，必須組成觀測方向線"],
+    "answer": [1, 2, 3],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則\"規定，基本控制測量之下列哪些資料，應予永久保存？",
+    "options": ["原始觀測數據", "平差計算結果、儀器裝備校正報告", "點之紀錄、成果表", "基本控制系(網)圖及相關紀錄資料"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "下列哪些為GPS 單點定位之主要誤差來源？",
+    "options": ["衛星錶差", "接收儀時鐘差", "對流層延遲", "電離層延遲"],
+    "answer": [1, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則\"規定，加密控制測量所設置之點位為加密控制點，應依各該地方主管機關所定方式加註下列哪些資料？",
+    "options": ["點號", "種類", "設置機關名稱", "設置機關人員"],
+    "answer": [1, 2, 3],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，加密控制測量得以下列哪些測量方法為之？",
+    "options": ["衛星定位測量", "三角測量、三邊測量", "精密導線測量、水準測量", "重力測量或其他同等成果精度之測量方法"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，地方主管機關應將加密控制測量成果以下列哪些方式處理？",
+    "options": ["建立資料庫", "公開資料清冊供各界查詢", "將該清冊送中央主管機關核定", "將該清冊送中央主管機關備查"],
+    "answer": [1, 2, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，以衛星定位測量方法實施一等基本控制測量之成果精度應符合下列哪些精度規範？",
+    "options": ["邊長標準誤差(單位:毫米) ≤ (50+1×10⁻⁶L)", "邊長標準誤差(單位:毫米) ≤ (10+1×10⁻⁵L)", "95%信心區間(單位:毫米) ≤ (20+2×10⁻⁶L)", "95%信心區間(單位:毫米) ≤ (10+2×10⁻⁶L)"],
+    "answer": [1, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，以衛星定位測量方法實施二等基本控制測量之成果精度應符合下列哪些精度規範？",
+    "options": ["邊長標準誤差(單位:毫米) ≤ (20+1×10⁻⁶L)", "邊長標準誤差(單位:毫米) ≤ (10+1×10⁻⁵L)", "95%信心區間(單位:毫米) ≤ (30+2×10⁻⁶L)", "95%信心區間(單位:毫米) ≤ (20+4×10⁻⁶L)"],
+    "answer": [2, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，以衛星定位測量方法實施一等基本控制測量之基線重複性應符合下列哪些精度規範？",
+    "options": ["重複觀測基線水平分量之差值(單位:毫米) ≤ (20+2×10⁻⁶L)", "重複觀測基線水平分量之差值(單位:毫米) ≤ (10+2×10⁻⁶L)", "重複觀測基線垂直分量之差值(單位:毫米) ≤ (25+5×10⁻⁶L)", "重複觀測基線垂直分量之差值(單位:毫米) ≤ (50+5×10⁻⁶L)"],
+    "answer": [2, 3],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，以衛星定位測量方法實施二等基本控制測量之基線重複性應符合下列哪些精度規範？",
+    "options": ["重複觀測基線水平分量之差值(單位:毫米) ≤ (20+4×10⁻⁶L)", "重複觀測基線水平分量之差值(單位:毫米) ≤ (30+4×10⁻⁶L)", "重複觀測基線垂直分量之差值(單位:毫米) ≤ (60+10×10⁻⁶L)", "重複觀測基線垂直分量之差值(單位:毫米) ≤ (50+10×10⁻⁶L)"],
+    "answer": [1, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，以三角測量方法實施一等基本控制測量之邊長測量應符合下列哪些精度規範？",
+    "options": ["測回數:3", "測回數:4", "標準誤差:1/1000000", "標準誤差:1/100000"],
+    "answer": [2, 3],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，以三角測量方法實施一等基本控制測量之水平角觀測應符合下列哪些精度規範？",
+    "options": ["使用儀器:0.2秒", "測回數:16", "測回數:12", "各觀測值與平均值之差不得超過:4秒"],
+    "answer": [1, 2, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，以三角測量方法實施一等基本控制測量之天文方位角應符合下列哪些精度規範？",
+    "options": ["觀測相隔之圖形數:6-8", "每夜觀測之測回數:16", "觀測夜數:2", "標準誤差:0.45秒"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，以三角測量方法實施二等甲級基本控制測量之水平角觀測應符合下列哪些精度規範？",
+    "options": ["使用儀器:1秒", "使用儀器:0.2秒", "測回數:8", "各觀測值與平均值之差不得超過:4秒"],
+    "answer": [2, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，以三角測量方法實施二等乙級基本控制測量之水平角觀測應符合下列哪些精度規範？",
+    "options": ["使用儀器:1秒, 測回數:12", "使用儀器:0.2秒, 測回數:12", "使用儀器:0.2秒, 測回數:8", "各觀測值與平均值之差不得超過:5秒"],
+    "answer": [1, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，以三邊測量方法實施基本控制測量之幾何圖形之最小角度應符合下列哪些精度規範？",
+    "options": ["一等不得小於25度", "二等甲級不得小於25度", "二等甲級不得小於20度", "二等乙級不得小於20度"],
+    "answer": [1, 2, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則\"規定，以三邊測量方法實施基本控制測量之邊長測量標準誤差應符合下列哪些精度規範？",
+    "options": ["一等:1/1000000", "二等甲級:1/750000", "二等甲級:1/450000", "二等乙級:1/300000"],
+    "answer": [1, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，以衛星定位測量方法實施加密控制測量之成果精度應符合下列哪些精度規範？",
+    "options": ["邊長標準誤差 ≤ (15+3×10⁻⁶L)毫米", "邊長標準誤差 ≤ (10+3×10⁻⁶L)毫米", "95%信心區間 ≤ (20+6×10⁻⁶L)毫米", "95%信心區間 ≤ (30+6×10⁻⁶L)毫米"],
+    "answer": [1, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，以衛星定位測量方法實施加密控制測量之圖形閉合差應符合下列哪些精度規範？",
+    "options": ["閉合圈中之基線源自不同觀測時間數 ≥ 3", "閉合圈中獨立觀測之基線數 ≥ 2", "各閉合圈中之基線數 ≤ 15", "閉合圈總邊長 ≤ 50公里"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "依「基本測量實施規則」規定，以衛星定位測量方法實施加密控制測量之基線重複性，應符合下列哪些精度規範？",
+    "options": ["重複觀測基線水平分量之差值 ≤ (25+6×10⁻⁶L)毫米", "重複觀測基線水平分量之差值 ≤ (30+6×10⁻⁶L)毫米", "重複觀測基線垂直分量之差值 ≤ (25+15×10⁻⁶L)毫米", "重複觀測基線垂直分量之差值 ≤ (75+15×10⁻⁶L)毫米"],
+    "answer": [2, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "以三角測量方法實施加密控制測量之水平角觀測，應符合下列哪些精度規範？",
+    "options": ["使用儀器:1秒", "測回數:4", "各觀測值與平均值之差:不得超過4秒", "各觀測值與平均值之差:不得超過5秒"],
+    "answer": [1, 2, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "下列哪些為GPS衛星定位系統應用於測量方面之特點？",
+    "options": ["選點靈活，測站之間無須通視", "定位精度非常高，耗費大幅降低", "觀測時間短", "可提供三度空間坐標"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "（本題刪題）下列哪些為GPS單點定位之主要誤差來源？",
+    "options": ["衛星錶差", "接收儀時鐘差", "對流層延遲", "電離層延遲"],
+    "answer": [1, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "GPS地面監控部主控制站設於科羅拉多州的斯普林斯的聯合空間行動中心(CSOC)，下列哪些為其主要功能？",
+    "options": ["收集數據", "編算導航訊息", "診斷狀態", "調度衛星"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "GPS控制網的基準設計包括下列哪些？",
+    "options": ["深度基準", "位置基準", "方位基準", "尺度基準"],
+    "answer": [2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "GPS控制網圖形設計包含下列哪些？",
+    "options": ["觀測時段", "同步觀測", "獨立基線", "獨立觀測環"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "下列哪些為GPS衛星定位測量之選點原則？",
+    "options": ["控制點位盡量分布均勻", "點位對空通視度良好", "點位可長久保存", "交通便利易於前往"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "GPS 即時動態定位具有以下那幾項特點？",
+    "options": ["使用者單一性", "速度多異性", "定位即時性", "速度單一性"],
+    "answer": [2, 3],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "下列哪些為影響GPS衛星定位測量精度之因素？",
+    "options": ["衛星幾何分佈", "衛星幾何精度稀釋因子(GDOP)", "衛星軌道誤差", "對流層延遲誤差"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "區域性坐標系統與GPS坐標系統間進行坐標轉換時，常採用下列哪些參數轉換方法？",
+    "options": ["三、四參數轉換", "六、七參數轉換", "十參數轉換", "多項次迴歸"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "七參數坐標轉換法之七參數包括下列哪些參數？",
+    "options": ["一個尺度比", "三個旋轉量", "三個位移量", "三軸尺度比"],
+    "answer": [1, 2, 3],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "關於GPS衛星定位系統，下列哪些敘述正確？",
+    "options": ["衛星數量:24 (21+3)", "衛星軌道數:3", "衛星高度:20,200km左右", "坐標系統:WGS84"],
+    "answer": [1, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "GPS/GLONASS組合技術已經成為近幾年研究的重點，下列哪些為其優勢？",
+    "options": ["可見衛星數增加", "提高觀測結果的可靠性", "提高觀測結果的精度", "提高了導航連續性"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "02：基本控制測量",
+    "question": "如下圖所示，下列何種方向角之讀法正確？",
+    "options": ["OA方向角為N35°E", "OB 方向角為S19°E", "OC方向角為S28°W", "OD方向角為N20°W"],
+    "answer": [1, 2, 4],
+    "image": ""
+  },
+{
+    "category": "03：圖根測量",
+    "question": "縱距閉合差為3公分，橫距閉合差為4公分，導線全長為500公尺，則此導線之相對精度為",
+    "options": ["1/3000", "1/4000", "1/5000", "1/10000"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "設一測線長300公尺，方位角為300°，則此測線之縱距為",
+    "options": ["100公尺", "260公尺", "150公尺", "200公尺"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "設一測線之方位角為30°，則其反方位角為",
+    "options": ["210°", "180°", "N30°E", "S30°W"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "導線選點諸多條件中，以何者為先決條件？",
+    "options": ["點位分佈均勻", "邊長近似相等", "展望良好便於測圖", "前後通視"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "分別於二已知點A、B整置經緯儀觀測 ∠PAB 與 ∠PBA，再據以求得未知點P點之平面位置，此法稱之為",
+    "options": ["後方交會法", "側方交會法", "前方交會法", "旁點交會"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "導線測量水平角閉合差配賦之原則為",
+    "options": ["依方位角之大小成比例分配", "依角度之大小成正比例分配", "依邊長大小成比例分配", "平均分配"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "一測線之方向角為N25°W，其相應之方位角為",
+    "options": ["155°", "335°", "25°", "245°"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "圖根測量交會點之位置，每點交會至少應用幾個方向線？",
+    "options": ["一方向線", "二方向線", "三方向線", "四方向線"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "圖根測量之導線邊長，以下列何種距離為原則？",
+    "options": ["50m以下", "50m~150m", "150m~200m", "200m以上"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "除因地勢所限，圖根測量交會法所用方向線長度，應在距離多少公尺以上？",
+    "options": ["50", "100", "200", "300"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "圖根測量時，支導線逐級推展以不超過多少次為原則？",
+    "options": ["二次", "三次", "四次", "五次"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "數值地籍測量中，圖根測量支導線之位置閉合差不得超過",
+    "options": ["1/3000", "1/4000", "1/5000", "1/60000"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "數值地籍測量圖根測量時，幹導線之水平角閉合差不得超過何限制？（N為二已知點之導線總數）",
+    "options": ["20\"√N", "20\"√N+30\"", "1'√N", "1'√N+1'"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "圖根測量之縱橫坐標，應計算至",
+    "options": ["公尺", "公寸", "公分", "毫米"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "天頂距100°相當於垂直角多少度？",
+    "options": ["100°", "10°", "-10°", "-100°"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "使用經緯儀測量水平角時，若正鏡時其方向之讀數為68°21'30\"，則其倒鏡讀數可能為多少？",
+    "options": ["68°21'29\"", "158°21'28\"", "248°21'35\"", "338°21'36\""],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "若距離為100公尺時，量距誤差為0.01公尺時，則測角之精度應為多少，以使量距測角精度相當？",
+    "options": ["10秒", "20秒", "30秒", "44秒"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "以A為原方向右旋，已知OA之方向角N60°E，OC方向角為S30°E，則 ∠AOC =",
+    "options": ["60°", "90°", "120°", "150°"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "依據「地籍測量實施規則」，圖根測量時以鋼卷尺量測距離，在平坦地二次量測之差不超過多少？（S為距離，以公尺為單位）",
+    "options": ["±2.5mm√S", "±3.2mm√S", "±3.8mm√S", "±4.2mm√S"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "依據「地籍測量實施規則」，圖根測量時以鋼卷尺量測距離，在地勢起伏地區二次量測之差不超過多少？（S為距離，以公尺為單位）",
+    "options": ["±2.5mm√S", "±3.2mm√S", "±3.8mm√S", "±4.2mm√S"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "使用六秒讀經緯儀，實施圖根測量之水平角觀測時，最後必須回歸原標定之方向，並比較其觀測值，其差應小於",
+    "options": ["30\"", "12\"", "18\"", "24\""],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "導線縱橫距閉合差配賦之原則為",
+    "options": ["依邊長與邊長總和之比例分配", "依邊長總和與邊長之比例分配", "平均分配", "依縱橫距與縱橫距總和之比例分配"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "導線閉合差之計算公式為（W_E為橫距誤差、W_N為縱距誤差、L為導線全長）：",
+    "options": ["(W_E² + W_N²) / L", "(W_E² - W_N²) / L", "√(W_E² + W_N²) / L", "√(W_E² + W_N²)"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "坐標反算方位角時，縱距 ΔN 為正值、橫距 ΔE 為負值，其方位角為",
+    "options": ["象限角", "180°-象限角", "180°+象限角", "360°-象限角"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "一閉合導線，共有7個導線點，則其內折角之總和應為",
+    "options": ["900°", "1080°", "1260°", "1440°"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "數值地籍測量圖根測量，幹導線之位置閉合差不得超過？",
+    "options": ["1/3,000", "1/5,000", "1/7,000", "1/10,000"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "一導線邊長為400m、方位角為135°，則其橫距差與縱距差分別為",
+    "options": ["+282.843m, +282.843m", "+282.843m, -282.843m", "-282.843m, -282.843m", "-282.843m, +282.843m"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "於A點整置天頂式經緯儀，對目標B進行垂直角觀測，得正鏡觀測讀數為 88°25'36\"、倒鏡讀數為 271°35'12\"，則指標差為",
+    "options": ["12\"", "-12\"", "24\"", "-24\""],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "有一閉合導線共5個導線點，今測得各外角總和為 1260°00'45\"，則各點之閉合差改正值為",
+    "options": ["+9\"", "-9\"", "+7\"", "-7\""],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "依「地籍測量實施規則」規定，圖根測量時，每一導線含起迄點之總點數，幹導線至多為幾個點，但為地勢所限得調整之？",
+    "options": ["10", "15", "20", "25"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "依「地籍測量實施規則」規定，圖根測量時，每一導線含起迄點之總點數，支導線至多為幾個點，但為地勢所限得調整之？",
+    "options": ["10", "15", "20", "25"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "圖根點測量水平角，採用六秒讀經緯儀，以方向觀測法施測時，其測回差不得超過",
+    "options": ["12\"", "30\"", "45\"", "60\""],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "測站A至B之方位角為 50°，測站B至C之偏角為 50°，求測站C至測站B之方位角為",
+    "options": ["50°", "210°", "280°", "100°"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "圖根測量作業時，下列何者為第一步驟？",
+    "options": ["檢測已知點", "觀測", "選點埋石", "計算"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "有一封閉之五邊形ABCDE，∠A=117°36'00\"、∠B=90°32'00\"、∠C=142°54'00\"、∠D=132°18'00\"，假設各角均已改正，則 ∠E 應為",
+    "options": ["126°20'00\"", "86°40'00\"", "66°20'00\"", "56°40'00\""],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "於A點整置天頂式經緯儀對目標B進行垂直角觀測，得正鏡觀測讀數為 90°04'09\"，倒鏡讀數為 269°56'05\"，則垂直角為",
+    "options": ["-04'02\"", "+04'02\"", "-04'09\"", "+04'09\""],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "於P點整置經緯儀，順時鐘方向對目標A、B進行水平角方向觀測，正鏡分別為 0°01'00\"、48°33'27\"，倒鏡分別為 180°01'12\"、228°33'39\"，則水平角 APB 為",
+    "options": ["48°34'27\"", "48°32'12\"", "228°32'27\"", "48°32'27\""],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "已知A點橫坐標為123.420m，AB邊長為27.365m，AB之方位角為 95°21'45\"，則求B點之橫坐標為",
+    "options": ["121.163m", "150.665m", "125.677m", "96.215m"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "使用電子測距經緯儀作圖根點之水平角觀測，應施測多少測回？",
+    "options": ["一", "二", "三", "四"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "圖根測量使用電子測距儀進行距離觀測，照準觀測目標施測二次，兩次之差不得超過多少公分？",
+    "options": ["一", "二", "三", "四"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "以數值法辦理地籍測量之地區，幹導線點總數（含起迄二已知點）為九點，其水平角閉合差為多少秒？",
+    "options": ["30", "60", "90", "120"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "依「地籍測量實施規則」規定，圖根點加測高程時，以何種方法作業是錯誤的？",
+    "options": ["直接水準測量", "衛星定位測量", "三角高程測量", "氣壓高程測量"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "實施數值法導線測量，其幹導線之位置閉合差，不得超過",
+    "options": ["1/1000", "1/2000", "1/3000", "1/5000"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "以圖解法辦理地籍測量之地區，支導線點總數（含起迄二已知點）為九點，其水平角閉合差為多少？",
+    "options": ["3'", "4'", "5'", "6'"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "以鋼卷尺在水平地量距，導線長度為144公尺，往返兩次之差不得超過多少毫米？",
+    "options": ["38.4", "30.0", "45.6", "60.2"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "圖根測量完竣後，所管轄之登記機關應依何種法令實施查對？",
+    "options": ["土地法及其施行法", "測量標設置保護條例", "都市計畫樁測定及管理辦法", "國土測繪法及其施行細則"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "圖根點需永久保存者，應依國土測繪法第3條第11款之規定，於現場",
+    "options": ["繪製點之位置略圖", "繪製衛星透空圖", "設置明確標示", "測製觀測方向圖"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "圖根測量完竣後，實施測量之機關應將圖根點之位置略圖及圖根資料檔移送",
+    "options": ["中央主管機關", "所在地地方主管機關", "所在地登記機關", "都市計畫主管機關"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "圖根測量採即時動態衛星測量(RTK)辦理時，其點位遮蔽仰角最小值一般應為",
+    "options": ["10°", "15°", "20°", "25°"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "圖根測量採即時動態衛星測量(RTK)辦理時，其圖根點與圖根點間之距離，一般應為",
+    "options": ["≤100公尺", "≥1000公尺", "≥100公尺", "在50公尺與100公尺之間"],
+    "answer": 3,
+    "image": ""
+  },
+{
+    "category": "03：圖根測量",
+    "question": "導線網嚴密平差計算，其網形平均多餘觀測數指標為 r，則其精度要求應為",
+    "options": ["≤0.2", "≥0.3", "34700", "5000"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "下列各種測量方法，何者優先應用於圖根測量？",
+    "options": ["自由測站法", "交會測量", "導線測量", "支距測量"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "導線網平差計算，應採用",
+    "options": ["簡易平差", "分組平差", "水準網平差", "嚴密平差"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "圖根點之配置，應以導線網形連結，兩條導線相交之處，須相接成",
+    "options": ["點對", "共軛點", "節點", "交會點"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "圖根測量之水平角觀測，若採6秒讀經緯施測，應測幾測回，其測回差值不得超過多少秒？",
+    "options": ["2測回, 6秒", "2測回, 12秒", "4測回, 12秒", "4測回, 24秒"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "導線經計算後，其閉合差超出規定者，測量人員應如何進行？",
+    "options": ["列印導線成果表", "用紅筆將錯誤數值劃銷之", "用紅色雙線劃銷之", "查明原因處理之"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "交會點之縱橫坐標，以相異三角形計算之，其差不得超過",
+    "options": ["20公分", "25公分", "30公分", "35公分"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "n邊形閉合導線，諸偏角之代數和應為多少？",
+    "options": ["180°", "(n+2)×180°", "(n-2)×180°", "360°"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "圖根測量之距離以電子測距儀施測者，其結果應加何種改正？",
+    "options": ["標準尺長之改正", "對流層改正", "電離層改正", "頻率偏差改正"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "依「地籍測量實施規則」規定，以數值法辦理戶地測量者，其所依據之圖根點不得使用下列何種點位施測？",
+    "options": ["衛星控制點", "幹導線點", "支導線點", "交會點"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "數值地籍測量圖根測量，支導線之水平角閉合差不得超過何限制？（N為含起迄二已知點之導線點總數）",
+    "options": ["20\"√N", "20\"√N", "20\"√N+30\"", "1\"√N+1'"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "一閉合導線橫距之閉合差 W_e = 0.06公尺，縱距之閉合差 W_n = 0.08公尺，導線全長500公尺，則導線精度為",
+    "options": ["1/4,000", "1/5,000", "1/6,000", "1/7,000"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "影響電子測距之氣象因素最大者為",
+    "options": ["溫度", "氣壓", "濕度", "空氣中之二氧化碳含量"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "圖根測量時，觀測GPS檢測已知控制點時，基線長經各項改正計算後與相應坐標反算之邊長相較，其差小於多少可視為正確？",
+    "options": ["1/5,000", "1/10,000", "1/15,000", "1/20,000"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "圖根測量之距離測量，下列何者為不正確？",
+    "options": ["應用精於(含)5mm+5ppm電子測距儀", "照準觀測目標施測二次，取其平均值", "施測二次之差不得超過十毫米", "應以雙向觀測為原則"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "以經緯儀測角時，測回與測回間變換度盤位置之目的在消除",
+    "options": ["度盤之外", "度盤之刻度誤差", "照準軸誤差", "水平軸誤差"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "依「地籍測量實施規則」規定，圖根點之水平角，用精於(含)六秒讀經緯儀，採方向觀測法施測之，下列敘述哪些正確？",
+    "options": ["水平角觀測，應施測二測回，其二測回之差，不得超過12秒", "水平角觀測，應施測二測回，其二測回之差，不得超過10秒", "水平角觀測，應施測一測回，其一測回之差，不得超過12秒", "水平角觀測，應施測一測回，其一測回之差，不得超過10秒"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "圖根測量應依基本控制測量及加密控制測量之成果辦理，依「地籍測量實施規則」規定，應以下列哪些方法為優先實施？",
+    "options": ["導線測量", "交會測量", "衛星定位測量", "自由測站法"],
+    "answer": [1, 3],
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "圖根測量中，可使用之交會測量方法有下列哪些？",
+    "options": ["前方交會法", "側方交會法", "後方交會法", "雙點定位法"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "依「地籍測量實施規則」規定，圖根測量作業步驟包括A檢測已知點、B觀測、C計算、D規劃、選點並視需要埋設永久標誌、E調製成果圖表，下列實施步驟先後順序哪些錯誤？",
+    "options": ["A-B-C-D-E", "A-C-B-D-E", "A-D-B-C-E", "A-D-B-E-C"],
+    "answer": [1, 2, 4],
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "依「地籍測量實施規則」規定，圖根點之選定應注意事項為何？",
+    "options": ["應便於保存，並顧及戶地測量之便利", "選在行政區界及重要河川、道路、山腳或堅硬之固定物等處", "塔尖、避雷針等永久固定突出物，應以多方向交會法測定之", "必須設於公有地上，以免地主要求補償"],
+    "answer": [1, 2, 3],
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "有關圖根導線測量之計算及精度，下列敘述哪些正確？",
+    "options": ["在二加密控制點間佈置一附合導線，該導線橫距和應等於二加密控制點之橫坐標差", "閉合導線之橫距和應等於零", "閉合導線之精度以平面閉合差表示", "導線測量可用羅盤儀及捲尺施測"],
+    "answer": [1, 2],
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "依「地籍測量實施規則」規定，有關圖根測量，下列敘述哪些正確？",
+    "options": ["支導線之逐級推展，以不超過5次為限", "交會點之位置，應依基本控制點或幹導線點交會之，每點交會至少應用三方向線", "方向線交會之角度，應在30度至120度間", "圖根測量之導線邊長，以50公尺至200公尺為限"],
+    "answer": [2, 3],
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "依「地籍測量實施規則」規定，有關圖根測量之導線邊長作業原則及每一條導線點數規定，下列敘述哪些正確？",
+    "options": ["圖根測量之導線邊長，以50公尺至150公尺為原則", "圖根測量之導線邊長，以50公尺至150公尺為限", "每一導線含起迄點之總點數，幹導線應在15點以內，支導線應在10點以內，但為地勢所限得調整之", "每一導線含起迄點之總點數，幹導線應在10點以內，支導線應在15點以內，但為地勢所限得調整之"],
+    "answer": [1, 3],
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "依「地籍測量實施規則」規定，圖根測量中，距離測量用精於(含)5 mm+5 ppm 電子測距儀者，下列敘述哪些正確？",
+    "options": ["以單向觀測為原則，照準觀測目標施測二次", "以雙向觀測為原則，照準觀測目標施測二次", "觀測值取其平均值，算至毫米為止，二次之差不得超過10毫米", "觀測值取其平均值，算至毫米為止，二次之差不得超過12毫米"],
+    "answer": [1, 3],
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "衛星定位測量方式包含下列幾種？",
+    "options": ["靜態定位", "動態定位", "即時動態測量", "光波定位"],
+    "answer": [1, 2, 3],
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "依「地籍測量實施規則」規定，圖根測量以衛星接收儀施測者，應加下列哪些改正？",
+    "options": ["星曆改正", "電離層改正", "頻率偏差改正", "對流層改正"],
+    "answer": [1, 2, 4],
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "衛星定位測量之精度因子(DOP)，下列敘述哪些正確？",
+    "options": ["GDOP為3D坐標與時間精度因子", "TDOP為位置精度因子", "HDOP為水平2D坐標精度因子", "VDOP為垂直坐標精度因子"],
+    "answer": [1, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "衛星定位測量各種誤差中，下列哪些屬於訊號傳播誤差？",
+    "options": ["電離層誤差", "對流層誤差", "衛星星曆誤差", "多路徑誤差"],
+    "answer": [1, 2, 4],
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "圖根點加測高程時，依「地籍測量實施規則」第62條之規定，包含下列哪些方法？",
+    "options": ["直接水準測量", "三角高程測量", "衛星定位測量", "重力測量"],
+    "answer": [1, 2, 3],
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "圖根測量之幹、支導線簡易平差計算之位置閉合比數規定，下列敘述哪些正確？",
+    "options": ["以數值法辦理地籍測量之地區，幹導線為1/5,000，支導線為1/3,000", "以數值法辦理地籍測量之地區，幹導線為1/5,000，支導線為1/2,000", "以圖解法辦理地籍測量之地區，幹導線為1/3,000，支導線為1/2,000", "以圖解法辦理地籍測量之地區，幹導線為1/3,000，支導線為1/1,000"],
+    "answer": [1, 3],
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "圖根測量幹導線簡易平差計算之水平角閉合差規定，下列敘述哪些正確？（N為含起迄二已知點之導線點總數）",
+    "options": ["以數值法辦理地籍測量之地區，幹導線為30\"√N", "以數值法辦理地籍測量之地區，幹導線為20\"√N", "以圖解法辦理地籍測量之地區，幹導線為1'√N", "以圖解法辦理地籍測量之地區，幹導線為5'√N"],
+    "answer": [2, 3],
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "圖根測量支導線簡易平差計算之水平角閉合差規定，下列敘述哪些正確？（N為含起迄二已知點之導線點總數）",
+    "options": ["以數值法辦理地籍測量之地區，支導線為30\"√N+30\"", "以數值法辦理地籍測量之地區，支導線為20\"√N+30\"", "以圖解法辦理地籍測量之地區，支導線為1'√N+1'", "以圖解法辦理地籍測量之地區，支導線為1'√N+10\""],
+    "answer": [2, 3],
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "依「地籍測量實施規則」規定，圖根測量之邊長以電子測距儀測定時，須為下列哪些改正？",
+    "options": ["頻率偏差改正", "傾斜改正", "張力改正", "化歸至平均海水面長度之改正"],
+    "answer": [1, 2, 4],
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "全測站電子測距經緯儀具備下列那幾種功能？",
+    "options": ["水平角量測", "垂直角量測", "距離測量", "氣壓量測"],
+    "answer": [1, 2, 3],
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "圖根測量之邊長以鋼捲尺測定時，須為下列哪些改正？",
+    "options": ["頻率偏差改正", "傾斜改正", "標準尺長之改正", "化歸至平均海水面長度之改正"],
+    "answer": [2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "03：圖根測量",
+    "question": "有關圖根點之距離測量，副列哪些正確？",
+    "options": ["應用精於(含)5mm+5ppm電子測距儀測量距離", "應以對向觀測為原則", "照準觀測目標二次，取其平均值，算至毫米為止", "前項二次誤差不得超過10毫米"],
+    "answer": [1, 3, 4],
+    "image": ""
+  },
+{
+    "category": "04：戶地測量",
+    "question": "地籍圖重測時，土地所有權人因設立界標或到場指界發生界址爭議時，應如何處理？",
+    "options": ["辦理協助指界", "辦理異議複丈", "由地政機關依法調處", "由測量人員逕行施測"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "地籍圖重測時，土地所有權人均到場，而無法指認界址者，地政機關得",
+    "options": ["逕行施測", "辦理協助指界", "參照舊地籍圖施測", "訴請法院審理"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "習慣上對於農地界址之認定，如毗鄰兩田有高低差者",
+    "options": ["以田埂下腳為界（田埂屬於高田）", "以田埂上緣為界（田埂屬低田）", "以田埂中央為界", "業主自行認定"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "戶地測量之直線截點法適用於",
+    "options": ["通視不良且不易量距之地方", "通視良好，但無法量距之地方", "開闊之農地", "各界址點排列在同一直線上"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "以光線法測定界址點方法是",
+    "options": ["只在通視不良時才用的方法", "最麻煩而累積誤差多的方法", "簡便易行且無累積誤差的方法", "無法量距情形之方法"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "數值地籍測量，對於僅能以卷尺量距而不能測角之地方，應採用",
+    "options": ["光線法", "交會法", "交弧法", "導線法"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "戶地測量如以開展導線方式補設圖根點時，其開放之點數不得超過",
+    "options": ["2點", "4點", "5點", "6點"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "戶地測量以圖解法測繪者，其圖根點至界址點之圖上位置誤差，不得超過",
+    "options": ["0.1mm", "0.2mm", "0.3mm", "0.4mm"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "地籍圖重測作業之第一步工作為",
+    "options": ["劃定重測地區", "都市計畫樁清理補建", "控制點測量", "辦理地籍調查"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "地籍調查時須經土地所有權人認定之事項為",
+    "options": ["地目", "等則", "界址位置", "面積"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "一般農地界址測量，最為便利的方法是",
+    "options": ["交弧法", "光線法", "導線法", "支距法"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "在2%傾斜地區量得的距離，如不經平距改正計算，則所產生之傾斜誤差約為量距之",
+    "options": ["1/2,000", "1/2,500", "1/3,000", "1/5,000"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "地籍調查完畢後，即應建立",
+    "options": ["界址坐標檔", "宗地資料檔", "地號界址檔", "繪圖檔"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "量得斜距及傾斜角度改算為水平距離時，係以那種三角函數計算？",
+    "options": ["正弦", "餘弦", "正切", "餘切"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "坐標讀取儀計算面積，於量取各界址點坐標時，每點",
+    "options": ["量一次", "連續量二次", "連續量三次", "連續量四次"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "坐標讀取儀量取各界址點之坐標時，每點連續二次，其較差不得超過圖上",
+    "options": ["0.1mm", "0.2mm", "0.3mm", "0.4mm"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "界址測量時，將各邊之實量距離註明於地籍原圖各該邊內側之目的為",
+    "options": ["供計算面積及複丈之依據", "作業過程需要", "防止坵形錯誤", "增加美觀"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "市地數值法戶地測量，其界址點間坐標計算之邊長與實測邊長之差，不得超過（S為邊長，以公尺為單位）",
+    "options": ["1cm+0.3cm", "2cm+0.3cm", "4cm+1cm", "8cm+2cm"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "用圖解法計算面積，如遇一號土地跨越兩幅原圖而被切斷時，應",
+    "options": ["分別編定地號計算面積", "將原圖併接合併計算面積", "分別計算分別記載之", "就每幅圖上之部分個別計算後再合併之"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "數值地籍測量對於市地界址點之位置誤差為",
+    "options": ["2cm", "4cm", "6cm", "8cm"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "原圖互相接合，圖上之差，除因圖紙伸縮影響外，其誤差逾多少範圍以上者，應實地檢查更正之？",
+    "options": ["0.1mm", "0.2mm", "0.3mm", "0.4mm"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "實量邊長為20m，於比例尺1/500圖上之邊長應為",
+    "options": ["0.01m", "0.02m", "0.03m", "0.04m"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "地籍測量所測定之界址，就是",
+    "options": ["現況界", "權利界", "天然界", "行政界"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "地籍圖重測結果公告期滿確定，地政機關應即辦理",
+    "options": ["平均地權", "土地標示變更登記", "所有權變更登記", "市地重劃"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "圖解導線圖上閉合差之界限為（N為總邊數，N≤6）",
+    "options": ["0.2mm", "0.2mm√N", "0.3mm√N", "0.3mm"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "數值法戶地測量之面積，應以何者計算？",
+    "options": ["使用三斜法", "界址點坐標", "地籍圖上記載之邊長", "圖上量距"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "今在市地以圖解法實施1/500之戶地測量，假定某一經界線之長為50m，則圖上邊長與實量邊長容許之差值為",
+    "options": ["21mm", "10mm", "44mm", "541mm"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "凡一號地被圖廓切斷在圖廓外，無法測繪其整個面積時，應測至圖廓外多少公分？",
+    "options": ["1cm", "2cm", "3cm", "4cm"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "數值法施測界址點之位置誤差，市地最大以",
+    "options": ["20cm", "6cm", "7cm", "2cm 為限"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "1/1,000 地籍圖上一平方公分相應於實地面積約為",
+    "options": ["90坪", "120坪", "30坪", "60坪"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "平板測量採用1/1000比例尺，量測45m外之界址點，因距離讀數誤讀為47m，則圖上縮繪時產生之誤差為",
+    "options": ["2mm", "3mm", "4mm", "5mm"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "施測圖解導線，若邊數為4，則其圖上之水平位置閉合差不得超過",
+    "options": ["0.2mm", "0.3mm", "0.4mm", "0.5mm"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "於市街地一36m邊長之界址實施圖解法戶地測量，若採用的比例尺為1/500，則其測繪誤差不得超過",
+    "options": ["10cm", "12cm", "20cm", "36cm"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "土地界址爭議，依法調處之法令依據為",
+    "options": ["土地法第46條之一", "土地法第46條之二", "土地法第46條之三", "土地法第59條第一項"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "山坡地採數值法實施戶地測量，其圖根點至界址點之標準誤差為",
+    "options": ["10cm", "12cm", "15cm", "20cm"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "圖解法戶地測量之業務包括：a.測量補助點，b.界址測量，c.地籍調查，d.展繪圖根點等業務，其作業之先後順序為",
+    "options": ["a→b→c→d", "c→a→b→d", "c→d→a→b", "d→a→b→c"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "數值法戶地測量之業務包括a.界址測量，b.地籍調查，c.編定界址點號，d.建立基本資料檔及展繪，其作業之先後順序為",
+    "options": ["a→b→c→d", "c→b→a→d", "b→a→c→d", "b→a→c→d"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "農地採數值法實施戶地測量，其圖根點至界址點之標準誤差為",
+    "options": ["5cm", "6cm", "7cm", "10cm"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "以平板儀測量界址點，下列何項作業最先實施？",
+    "options": ["量定距離", "描繪方向線", "定心定平", "標定平板方位"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "數值法界址測量應採用精於含多少秒讀之經緯儀施測",
+    "options": ["1\"", "6\"", "20\"", "30\""],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "航高過高或過低，致像片比例尺與規定相差多少以上時，應重行攝影或補攝",
+    "options": ["2%", "4%", "6%", "10%"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "重測區範圍經核定後，下列何單位應備公告文，並繪製重測區範圍圖說，在適當處所公布之？",
+    "options": ["內政部", "行政院", "縣(市)政府", "地政事務所"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "縣(市)政府成立之地籍圖重測界址糾紛協調會，下列何者為委員之任期？",
+    "options": ["三個月", "六個月", "一年", "二年"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "利用涵蓋全段適當比例尺之作業參考圖編定新地號，作業原則為",
+    "options": ["左上方開始，依S形順序", "左上方開始，依L形順序", "右上方開始，依S形順序", "右上方開始，依L形順序"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "縣(市)政府應將重測結果含重測地籍公告圖及有關清冊，公告多少日，並將公告文示於適當場所",
+    "options": ["十五日", "二十日", "三十日", "三個月"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "A、D為直線上兩端點，其坐標為：E_A=5, N_A=10；E_D=14, N_D=22，今以直線截點法量得各界址點間之長分別為AB=5公尺、BC=5公尺、CD=4.98公尺，則N_B =",
+    "options": ["18.10m", "18.01m", "28.10m", "28.01m"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "重測結果公告期間，異議複丈時，應依照下類那種資料，所載之界址辦理之",
+    "options": ["舊地籍圖", "重測後地籍圖", "複丈圖", "地籍調查表"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "土地所有權人，如認為重測結果有錯誤，應於公告期間內，填妥聲請書向所轄何單位依法繳納土地複丈費，提出異議申請",
+    "options": ["縣(市)政府", "地政事務所", "重測區辦公室", "鄉鎮市區公所"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "地籍公告圖之比例尺為1/500者，其圖廓縱坐標應能被",
+    "options": ["200m", "300m", "400m", "600m 整除"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "地籍圖之比例尺為1/500者，其圖廓縱坐標應能被",
+    "options": ["100m", "150m", "200m", "300m 整除"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "測角與量距之精度要互相配合，如量距之精度為1/10000，則測角之精度應為",
+    "options": ["20\"", "30\"", "40\"", "50\""],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "測角與量距之精度要互相配合，如測角之誤差為20\"，則100m量距之相應誤差應為",
+    "options": ["1cm", "5cm", "10cm", "15cm"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "航空像片比例尺為1/3000，攝影機焦距為15cm，地面平均高度為50m，則飛機之海拔高度為",
+    "options": ["500m", "450m", "400m", "550m"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "公告圖之比例尺為1/1000者，其圖廓縱坐標應能被",
+    "options": ["600m", "700m", "800m", "900m整除"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "使用某電子測距儀，已知其觀測誤差為±(5mm+3ppm)，現觀測相距約700m 之兩點間距離，則其觀測誤差約為",
+    "options": ["0.018m", "0.035m", "0.080m", "0.007m"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "圖解導線應於已知點間連接之，其圖上閉合差，不得超過 0.2mm√N，其中N為總邊數，N值為",
+    "options": ["≤6", "≤10", "≤15", "≤20"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "土地權狀所記載之宗地面積，以下列何者為單位？",
+    "options": ["公頃", "公畝", "坪", "平方公尺"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "每一宗土地應發給土地所有權人土地所有權狀外，並應加附何種圖說？",
+    "options": ["段接續一覽圖", "地段圖", "土地複丈圖", "土地複丈成果圖"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "台灣地區意戶地測量地籍原圖圖廓之規格為",
+    "options": ["橫長60cm, 縱長50cm", "橫長50cm, 縱長60cm", "橫長40cm, 縱長30cm", "橫長30cm, 縱長40cm"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "辦理地籍圖重測時，土地所有權人如逾期不設立界標或到場指界者，得逕行施測之。下列何者為施測第一順位？",
+    "options": ["參照舊地籍圖", "現使用人指界", "鄰地界址", "地方習慣"],
+    "answer": 3,
+    "image": ""
+  },
+{
+    "category": "04：戶地測量",
+    "question": "地籍圖重測期間，重測區內之土地發生所有權移轉、合併、分割，必須辦理",
+    "options": ["協助指界", "戶地測量", "異動整理", "異議處理"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "航測法戶地測量之工作項目包括A.空中三角測量、B.布標、C.空中攝影、D.界址測量等，其作業順序為",
+    "options": ["B→C→A→D", "A→B→C→D", "C→A→B→D", "B→A→C→D"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "在套繪圖上二次量取點位之較差，不得超過",
+    "options": ["0.1mm", "0.2mm", "0.3mm", "0.4mm"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "實施協助指界時，正倒鏡所釘之樁位如超過多少公分，應重新施測？",
+    "options": ["2cm", "4cm", "6cm", "8cm"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "A.協助指界、B.現況測量、C.套圖、D.圖根測量，四者均為地籍圖重測之作業項目，其作業順序為",
+    "options": ["D→B→C→A", "A→B→C→D", "B→A→D→C", "C→A→B→D"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "已知單曲線的起點(B.C.)之坐標 E=10.46m, N=49.09m，起點切線之方位角為 75°00'12\"，計畫道路寬為18m，地籍分割時，過B.C.點橫斷面上道路內側邊界點之橫坐標為",
+    "options": ["18.13m", "15.12m", "12.79m", "5.80m"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "已知單曲線中線起點(B.C.)之坐標 E=10.46m, N=49.09m，起點切線之方位角為 75°00'12\"，計畫道路寬為18m，地籍分割時，過B.C.點橫斷面上道路內側邊界點之縱坐標為",
+    "options": ["57.78m", "31.70m", "40.40m", "66.48m"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "圖根點為A、B，界址點為P，AB之方位角為 300°12'30\"，AP之方位角為 34°56'30\"，今於A整置經緯儀，以B為原方向，鑑定P之實地位置，則應取之右旋夾角為",
+    "options": ["265°16'00\"", "24°51'00\"", "94°44'00\"", "335°09'00\""],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "AB之方位角為 30°，AC之方位角為 150°，則以C為後視方向之右旋夾角 ∠BAC 為",
+    "options": ["120°", "180°", "330°", "240°"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "A、B之坐標為：E_A=100.12m, N_A=203.58m；E_B=68.33m, N_B=301.25m，AB 之方位角為",
+    "options": ["341°58'15\"", "161°58'15\"", "198°01'45\"", "108°01'45\""],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "A、B之坐標為：E_A=100.12m, N_A=203.58m；E_B=68.33m, N_B=301.25m，AB之反方位角為",
+    "options": ["341°58'15\"", "161°58'15\"", "198°01'45\"", "108°01'45\""],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "A、B之坐標為：E_A=100.12m, N_A=203.58m；E_B=68.33m, N_B=301.25m，於A設站，以B為原方向觀測界址點C，得水平角度 85°12'16\"，量得AC之平距為 89.32m，則 E_c =",
+    "options": ["182.45m", "183.24m", "82.32m", "83.23m"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "A、B之坐標為：E_A=100.12m, N_A=203.58m；E_B=68.33m, N_B=301.25m，於A設站，以B為原方向觀測界址點C，得水平角度 85°12'16\"，量得AC之平距為 89.32m，則 N_c =",
+    "options": ["182.45m", "238.23m", "82.45m", "38.23m"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "一50m 長之鋼卷尺與標準尺比較，其實長為 50.008m，今以該尺量得一段距離為 128.54m，則此段距離之實長為",
+    "options": ["128.55m", "128.56m", "128.52m", "128.53m"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "過測站50m之覘標偏移點位0.5cm，則影響於測角誤差最大為",
+    "options": ["10\"", "20\"", "30\"", "44\""],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "航測法戶地測量，空中攝影航線間之左右重疊應在",
+    "options": ["10%", "15%", "20%", "30%以上"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "一幅五百分之一地籍原圖，其涵蓋之實地面積為",
+    "options": ["1公頃", "2公頃", "3公頃", "4公頃"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "土地法第46條之二第一項各款乃指A.地方習慣、B.鄰地界址、C.參照舊地籍圖、D.現使用人之指界，各款之順序為",
+    "options": ["ABCD", "BDCA", "DBAC", "CABD"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "土地所有權人逾期未設立界標或未到場指界，或到場而不指界者，測量員可逕行施測之，其所依據之法令為土地法",
+    "options": ["第46條之二第1項各款", "第47條第2項", "第50條第2項", "第59條第2項各款"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "戶地測量採數值法測繪者，其圖根點至界址點之位置誤差，農地最大為",
+    "options": ["14cm", "20cm", "34cm", "45cm"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "戶地測量採數值法測繪者，其圖根點至界址點之位置誤差，山地最大為",
+    "options": ["14cm", "20cm", "45cm", "50cm"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "數值法戶地測量，市地兩界址點間邊長為36m，則坐標反算邊長與實量邊長之差不得超過",
+    "options": ["3.8cm", "5.2cm", "6.4cm", "7.2cm"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "數值法戶地測量，農地兩界址點間之邊長為36m，則坐標反算邊長與實量邊長之差不得超過",
+    "options": ["6cm", "10cm", "12cm", "14cm"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "數值法戶地測量，山地兩界址點間之邊長為36m，則坐標反算邊長與實量邊長之差不得超過",
+    "options": ["10cm", "15cm", "20cm", "25cm"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "五百分之一地籍圖上，市地兩界址點間之邊長為49m，則圖上邊長與實量邊長之差不得超過",
+    "options": ["21 cm", "15 cm", "13 cm", "9 cm"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "五百分之一地籍圖上，農地兩界址點間之邊長為49m，則圖上邊長與實量邊長之差不得超過",
+    "options": ["21cm", "32cm", "35cm", "40cm"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "五百分之一地籍圖上，山地兩界址點間之邊長為49m，則圖上邊長與實量邊長之差不得超過",
+    "options": ["32cm", "35cm", "40cm", "51cm"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "地籍測量所用之航空攝影機，其鏡頭輻射畸變差應小於",
+    "options": ["0.05mm", "0.005mm", "0.01mm", "0.015mm"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "地籍公告圖之比例尺為五百分之一者，其圖廓橫坐標應能被",
+    "options": ["150m", "300m", "400m", "600m整除"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04::戶地測量",
+    "question": "地籍原圖之比例尺為五百分之一者，其圖廓橫坐標應能被",
+    "options": ["150m", "200m", "250m", "300m整除"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "已知 E_A=3m, N_A=1m, E_B=9m, N_B=124m，設站於A，以B為原方向，測得P點之水平角為 35°24'15\"，AP距離為20.12m，則 N_p =",
+    "options": ["15.44m", "16.81m", "-15.44m", "-16.81m"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "已知 E_A=3m, N_A=1m, E_B=9m, N_B=124m，設站於A，以B為原方向，測得P點之水平角為 35°24'15\"，AP距離為20.12m，則 E_p =",
+    "options": ["15.44m", "16.81m", "-15.44m", "-16.81m"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "公共設施用地逕為分割測量，其實施時機是在都市計畫樁位",
+    "options": ["釘設完成前", "釘設完成後", "釘樁之同時", "辦理土地徵收後"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "都市計畫用地地籍分割測量之執行單位為",
+    "options": ["工務機關", "建設機關", "建管機關", "地政機關"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "宗地資料檔內包括下列何項資料？",
+    "options": ["界址點坐標", "界址點號", "宗地面積", "圖根點坐標"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "地籍圖重測區之“段名”，除以中文命名外，並依內政部所規定者使用",
+    "options": ["兩個英文字母", "四個英文字母", "兩個阿拉伯數字", "四個阿拉伯數字為其代碼"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "台灣地區各縣、市之地政事務所，除以該管地名命名外，並依內政部所規定者使用",
+    "options": ["兩個英文字母", "四個英文字母", "兩個阿拉伯數字", "四個阿拉伯數字為其代碼"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "地號界址檔記錄",
+    "options": ["宗地界址點號", "宗地界址點坐標", "宗地面積", "宗地他項權利"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "計畫道路之直線形截角與道路邊線形成一個",
+    "options": ["矩形", "等腰三角形", "平行四邊形", "梯形"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "地籍測量作業項目有：a、戶地測量，b、控制點測量，c、製圖，d、計算面積，其作業順序為",
+    "options": ["a→b→c→d", "b→a→d→c", "c→a→b→d", "b→c→a→d"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "地籍圖重測時，如權利人逾期不設立界標或到場指界，得依下列各款逕行施測，a、參照舊地籍圖，b、現使用人指界，c、鄰地界址，d、地方習慣。其施測順序為",
+    "options": ["a→b→c→d", "b→a→c→d", "c→b→a→d", "d→a→b→c"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "土地所有權人因界址發生爭議，應由地政機關予以調處，不服調處結果者，應於接到調處通知後",
+    "options": ["十五日內", "七日內", "三十日內", "六十日內，向司法機關訴請處理"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "依「地籍測量實施規則」規定，戶地測量所用之比例尺有六種，其中比例尺最大者為",
+    "options": ["1/250", "1/500", "1/1000", "1/1200"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "依「地籍測量實施規則」所定，戶地測量所用之比例尺有六種，其中比例尺最小者為",
+    "options": ["1/5,000", "1/10,000", "1/20,000", "1/25,000"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "農地數值法戶地測量，二界址點間距離為80m，其實量邊長與坐標計算邊長之差，應不得超過",
+    "options": ["4.7cm", "7.8cm", "13cm", "26cm"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "使用經緯儀，以光線法施測界址點，標定原方向時與回歸至原方向後之正、倒鏡讀數分別為 0°00'05\"、179°59'55\" 及 0°00'12\"、180°00'06\"，則檢核原方向之誤差為",
+    "options": ["5\"", "6\"", "9\"", "12\""],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "市地數值法界址測量，測得A、B兩點之坐標分別為：(E_A=10.53m, N_A=20.14m)、(E_B=50.78m, N_B=89.86m)，則其與實量邊長之差不得超過",
+    "options": ["4.7 cm", "10 cm", "13 cm", "26 cm"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "地籍圖重測結果公告期間，異議複丈申請案均應收件，經審查結果有下列何者情形者應予駁回？",
+    "options": ["同意協助指界者", "到場指界，並在調查表上認章者", "未依規定設立界標或到場指界者", "已依規定設立界標者"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "經緯儀設於A點 (E_A=30.142m, N_A=103.242m)，得AP方位角 = 28°30'20\"，AP距離 = 30.284m，則 E_P 等於",
+    "options": ["44.595m", "56.754m", "129.855m", "117.695m"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "於A點 (E_A=30.142m, N_A=103.242m) 施測P點，得AP方位角 = 28°30'20\"，AP距離 = 30.284m，則 N_P 等於",
+    "options": ["44.595m", "56.754m", "129.855m", "117.695m"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "戶地航空攝影測量，像片控制點每像對至少要有",
+    "options": ["2點", "4點", "5點", "6點"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "戶地航空攝影測量，使用糾正儀糾正像片時，對點誤差不得超過",
+    "options": ["0.2mm", "0.4mm", "1.0mm", "0.8mm"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "戶地航空攝影測量，相鄰像片之前後重疊，不得少於",
+    "options": ["30%", "40%", "50%", "60%"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "辦理地籍圖重測時所為之地籍調查，係作為下列何者之依據？",
+    "options": ["規定地價", "確定權屬", "界址測量", "土地開發"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "地籍圖重測展辦時，已知土地所有權人所登記之住址資料已有門牌整編者，可應用下列那一種系統查詢，達成有效通知？",
+    "options": ["地理資訊系統", "圖資查詢系統", "戶役政資訊系統", "地籍圖重測資料處理系統"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "地籍調查展辦前，於核對重測各宗土地登記資料發現共有土地持分總額合計不等於一者，應提報下列那一機關查明處理？",
+    "options": ["稅捐機關", "土地登記機關", "國有財產機關", "戶政機關"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "辦理地籍圖重測時，設一宗土地之地籍調查表本表為0174號，因地籍調查表不不敷填載，而使用續表2張時，則其原宗地表號，應更正為",
+    "options": ["0174 (1/2)", "0174 (2/2)", "0174 (1/3)", "0174 (2/3)"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "辦理地籍圖重測時，於地籍調查表編造後，因申請複丈分割登記而增加地號者，新分割出土地之地籍調查表，其表號應如何編列？",
+    "options": ["以已編表號之次一號編列", "以任一空號編列", "以5000號起編列", "以原表號之子號編列"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "辦理地籍圖重測時，對於共有土地之地籍調查通知書送達對象為何？",
+    "options": ["持分數最大者", "居住在重測區內者", "全體共有人", "通知一半以上的共有人"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "辦理地籍圖重測時，有關地籍調查通知書之送達方式，若應受通知當事人於地籍調查時，已向地政機關陳明指定送達代收人者，其送達處所為何？",
+    "options": ["土地登記簿所載之住所", "指定代收人之住所", "稅捐機關所載之住所", "戶政機關所載之住所"],
+    "answer": 2,
+    "image": ""
+  },
+{
+    "category": "04：戶地測量",
+    "question": "地籍圖重測地籍調查通知書，無法直接送達時，應辦理",
+    "options": ["囑託送達", "公示送達", "留置送達", "寄存送達"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "地籍圖重測地籍調查通知書，經辦理公示送達後，其刊登政府公報或新聞紙者，自最後刊登之日起幾日後始發生效力？",
+    "options": ["5日", "10日", "20日", "30日"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "地籍圖重測地籍調查通知書，如土地所有權人應送達處所係於外國或境外而無法送達，經辦理公示送達後，其刊登政府公報或新聞紙者，自最後刊登之日起幾日後始發生效力？",
+    "options": ["30日", "45日", "60日", "490日"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "若公示送達期間之末日為星期六時，則其生效日為何？",
+    "options": ["星期六", "星期日", "隔週之星期一", "隔週之星期六"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "辦理地籍圖重測時，對於共有土地之界址，若到場指界之共有人未能共同認定而發生指界不一致者，應由到場之共有人自行協定後於幾日內認定之？",
+    "options": ["5日", "7日", "10日", "15日"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "現行地籍圖重測地籍調查表之經界物名稱中，以3代表牆壁，若某甲之西邊與某乙毗鄰；某甲東邊指界為「3內」（即經界線位置）與某丙毗鄰，且該指界亦經某丙同意，則該牆壁屬誰所有？",
+    "options": ["某甲", "某乙", "某丙", "某甲與某丙各一半"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "現行地籍圖重測地籍調查表之經界物名稱中，以8代表水溝，若某甲之西邊與某乙毗鄰；某甲東邊指界為「8中」（即經界線位置）與某丙毗鄰，且該指界亦經某丙同意，則該水溝屬誰所有？",
+    "options": ["某甲", "某乙", "某丙", "某甲與某丙各一半"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "現行地籍圖重測地籍調查表之經界物名稱中，以2代表圍牆，若某甲之西邊與某乙毗鄰；某甲東邊指界為「2外」（即經界線位置）與某丙毗鄰，且該指界亦經某丙同意，則該圍牆屬誰所有？",
+    "options": ["某甲", "某乙", "某丙", "某甲與某丙各一半"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "原圖互相界標種類的符號，何者表示鋼釘？",
+    "options": ["◎", "⊕", "▲", "■"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "下列界標種類的符號，何者表示水泥樁？",
+    "options": ["◎", "⊕", "▲", "■"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "下列界標種類的符號，何者表示塑膠樁？",
+    "options": ["◎", "⊕", "▲", "■"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "地籍圖重測地籍調查表於整理送審後，如發現有誤需要更正者，應如何處理？",
+    "options": ["由土地所有權人直接更正", "重新製作地籍調查表", "以地籍調查界址標示補正表補正之", "由地籍調查人員逕為更正"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "依「直轄市縣(市)不動產糾紛調處委員會設置及調處辦法」第19條之規定，地籍調查發生界址爭議案件，若當事人如不服調處結果，向法院提起確認經界之訴後，應於訴請法院審理之日起幾日內，將訴狀繕本送該管直轄市、縣(市)政府？",
+    "options": ["3日", "5日", "7日", "10日"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "直轄市縣(市)不動產糾紛調處委員會，對於地籍圖重測界址爭議案件之調處，如調處結果係由調處委員會予以裁處者，其調處紀錄，行文時，應以何名義行之？",
+    "options": ["辦理地籍圖重測之單位", "鄉鎮市區公所", "土地登記機關", "直轄市、縣(市)政府"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "辦理地籍圖重測於地籍調查後，有關土地異動事項，如分割、合併等，應即據以優先修正「數值地籍測量地籍圖重測資料處理系統」之那一種檔案？",
+    "options": ["宗地資料檔", "地號界址檔", "界址坐標檔", "控制測量檔"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "辦理地籍圖重測所完成之地籍調查表，應保存年限為多久？",
+    "options": ["5年", "10年", "15年", "永久保存"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "下列那一組坐標(N,E)是比例尺為1/500之某一幅地籍圖之圖廓坐標？",
+    "options": ["(2563000,167100)", "(2563050,167200)", "(2563100,167300)", "(2563150,167400)"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "下列那一組坐標(N,E)是比例尺為1/1000之某一幅地籍圖之圖廓坐標？",
+    "options": ["(2563200,167100)", "(2563200,167200)", "(2563500,167400)", "(2563500,167800)"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "下列那一組坐標(N,E)是比例尺為1/500之某一幅地籍公告圖之圖廓坐標？",
+    "options": ["(2563200,167100)", "(2563200,167200)", "(2563500,167400)", "(2563500,167800)"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "下列那一組坐標(N,E)是比例尺為1/1000之某一幅地籍公告圖之圖廓坐標？",
+    "options": ["(2562400,167000)", "(2562600,167200)", "(2562800,167400)", "(2563200,167600)"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "日治時期辦理土地測量，使用之長度單位為間(Ken)，並依測量地區之重要性有不同比例尺及圖幅，請問於當時認定為「都市地區」成圖比例尺為1/600之地籍圖，其圖幅為",
+    "options": ["200Ken x 250Ken", "400Ken x 500Ken", "1000Ken x 1250Ken", "2000Ken × 2500Ken"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "日治時期辦理土地測量，使用之長度單位為間(Ken)，並依測量地區之重要性有不同比例尺及圖幅，請問於當時認定為「郊區」成圖比例尺為1/1200之地籍圖，其圖幅為",
+    "options": ["200Ken x 250Ken", "400Ken x 500Ken", "1000Ken x 1250Ken", "2000Ken x 2500Ken"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "日治時期辦理土地測量，使用之長度單位為間(Ken)，並依測量地區之重要性有不同比例尺及圖幅，請問於當時認定為「山區\"成圖比例尺為1/3000之地籍圖，其圖幅為",
+    "options": ["1200Ken x 250Ken", "400Ken x 500Ken", "1000Ken x 1250Ken", "2000Ken x 2500Ken"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "都市計畫地籍分割線有圓弧之宗地，設為凸弧時，於建立地號界址檔時，應於該宗地號界址檔之圓弧線段中點點號前冠上何種符號？",
+    "options": ["+", "-", "*", "/"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "都市計畫地籍分割線有圓弧之宗地，設為凹弧時，於建立地號界址檔時，應於該宗地號界址檔之圓弧線段中點點號前冠上何種符號？",
+    "options": ["+", "-", "*", "/"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "辦理地籍圖重測界址測量前，應先編定界址點號，編號過程中如界址點有漏編點號者，應如何處理？",
+    "options": ["以最接近該點號的之號補編之", "以已編號碼終止碼之次一號碼補編之", "以沒有編列之空號補編之", "以10000號補編之"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "戶地測量時，若各界址點都位在同一直線上時，則界址點之最佳之施測方式為",
+    "options": ["光線法", "直線截點法", "交會法", "RTK 測量法"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "戶地測量時，若實地通視良好且界址點位容易直接觀測與量距，則界址點之最佳之施測方式為",
+    "options": ["光線法", "直線截點法", "交會法", "RTK 測量法"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "辦理地籍圖重測時，於新地段範圍內全部宗地編列重測後各宗土地之新地號，其作業應自何方向依序編定新地號？",
+    "options": ["左上方", "右上方", "左下方", "右下方"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "辦理地籍圖重測因界址爭議致經界線尚未確定之宗地，應如何編列新地號？",
+    "options": ["自10000號起依序編定之", "暫時空號，俟調處成立後自已編地號之次一號補編之", "仍編列其對應之新地號", "以相鄰宗地地號的之號編列"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "戶地測量時，可不須於控制點上設置站，且可以任意方向為北方，觀測測站附近各點之角度及距離據以計算各點位坐標的方法，稱為",
+    "options": ["光線法", "直線截點法", "交會法", "自由測站法"],
+    "answer": 4,
+    "image": ""
+  },
+ {
+    "category": "04：戶地測量",
+    "question": "土地法第四十六條之二第一項規定之逕行施測有A.參照舊地籍圖、B.鄰地界址、C.地方習慣、D.現使用人之指界，其正確之順序為？",
+    "options": ["B-D-C-A", "D-C-A-B", "B-C-D-A", "B-D-A-C"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "若P為AB 線上之一點且介於AB中，已知A點之縱坐標 N_A=0.000m，橫坐標 E_A=0.000m；B點之縱坐標 N_B=50.000m，橫坐標 E_B=70.000m；則下列何者可為P點坐標(N_P, E_P)？",
+    "options": ["(17.900, 39.059)", "(27.900, 39.059)", "(39.059, 27.900)", "(27.900, 49.059)"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "依「地籍測量實施規則」之規定，戶地測量採數值法測繪者，其圖根點至界址點之位置誤差，下列敘述哪些正確？",
+    "options": ["市地：標準誤差2公分", "市地：最大誤差6公分", "農地：標準誤差7公分", "農地：最大誤差21公分"],
+    "answer": [1, 2, 3],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "依「地籍測量實施規則」規定，戶地測量採圖解法測繪者，其圖根點至界址點之圖上位置誤差，下列敘述哪些為錯？",
+    "options": ["0.3毫米", "0.4毫米", "0.5毫米", "0.6毫米"],
+    "answer": [2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "依「地籍測量實施規則」規定，戶地測量採圖解法測繪者，圖上邊長與實測邊長之差， Chet下列敘述哪些正確？（S係邊長，以公尺為單位，M係地籍圖比例尺之分母）",
+    "options": ["市地：4公分+1公分√S+0.02公分M", "農地：8公分+2公分√S+0.02公分M", "山地：13公分+4公分√S+0.02公分M", "市地：4公分+1公分√S+0.03公分M"],
+    "answer": [1, 2, 3],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "依「地籍測量實施規則」規定，戶地測量圖廓之橫長與縱長，下列敘述哪些正確？",
+    "options": ["橫長為40公分", "縱長為40公分", "橫長為30公分", "縱長為30公分"],
+    "answer": [1, 4],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "依「地籍測量實施規則」規定，戶地測量成果應如何編定圖幅？",
+    "options": ["由下而上", "由上而下", "由右而左", "由左而右"],
+    "answer": [2, 3],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "依「地籍測量實施規則」規定，地籍調查係就下列哪些事項，查註於地籍調查表內？",
+    "options": ["土地坐落", "界址", "原有面積", "使用狀況"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "依「地籍測量實施規則」規定，地籍調查時以鄉(鎮、市、區)為實施區域，地段得參酌下列哪些項目劃設？",
+    "options": ["自然界", "顯明地界", "土地面積", "號數及使用狀況"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "依「地籍測量實施規則」規定，土地所有權人應於地籍調查時到場指界，並在下列哪些點位上自行設立界標？",
+    "options": ["彎曲點", "輔助點", "界址分歧點", "必要之點"],
+    "answer": [1, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "地籍調查時，下列哪些事項應在地籍調查表內註明？",
+    "options": ["土地所有權人住所遷移", "其他原因無法通知", "承租人住所遷移", "經通知未到場指界者"],
+    "answer": [1, 2, 4],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "戶地測量展繪已知點之處理原則，下列敘述哪些正確？",
+    "options": ["應依各點之大地坐標，就圖廓及方格網，按既定之比例尺，嚴密施行，並以距離檢查之", "應依各點之縱橫坐標，就圖廓及方格網，按既定之比例尺，嚴密施行，並以距離檢查之", "其展繪誤差不得超過零點二毫米", "其展繪誤差不得超過零點三毫米"],
+    "answer": [2, 3],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "戶地測量採圖解法者，其已知點不敷需用時，得以平板儀依下列何種方法測量補助點？",
+    "options": ["圖解交會法", "數值交會法", "圖解導線法", "圖解半導線法"],
+    "answer": [1, 3],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "圖解導線應於已知點間連接，其相關條件，下列敘述哪些正確？",
+    "options": ["其圖上閉合差，不得超過0.2毫米√N（N為總邊數，N≤6）", "其圖上閉合差，不得超過0.3毫米√N（N為總邊數，N≤6）", "應平均配賦於各點", "配賦於終點"],
+    "answer": [1, 3],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "依「地籍測量實施規則」規定，圖解法戶地測量可採用下列何種方法？",
+    "options": ["光線法", "導線法", "支距法", "半導線法"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "戶地測量界址點號之編定原則，下列敘述哪些正確？",
+    "options": ["圖根點編號以阿拉伯數字編之", "界址點編號以阿拉伯數字編之", "每地段由1號開始，中間不空號，連續編號", "每一單元之點號，應自右而左，從上而下依\"S\"形順序編列之，不得重號"],
+    "answer": [2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "戶地測量採數值法者，以光線法為主，並得視實地情形，採下列哪些方法為之？",
+    "options": ["直線截點法", "支距法", "導線法", "交會法"],
+    "answer": [1, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "戶地測量之界址點水平角觀測，下列敘述哪些正確？",
+    "options": ["應以精於(含)20秒讀經緯儀，於一已知點上整置，並標定較遠之另一已知點", "就每一界址點正倒鏡觀測一測回", "施測5至10點及觀測完畢後，應回歸至原標定之已知點，正倒鏡觀測檢查之", "其較差不得超過45秒"],
+    "answer": [1, 2, 3],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "各宗土地之相鄰界址，應如何處理？",
+    "options": ["相鄰界址如係弧形者，應以直線聯結之", "儘量將各邊邊長予以實量後註明於圖上", "相鄰界址如係弧形者，應以弧線聯結之", "應以直線聯結之"],
+    "answer": [2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "戶地航空攝影測量，以用立體測圖法為主，必要時得採正射投影法或糾正鑲嵌法，其作業內容包含下列哪些項目？",
+    "options": ["地籍調查", "布設航測標", "航空攝影", "像片認點"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "實施戶地航空攝影測量時，下列哪些點位，除另有規定外，應於航空攝影前布設航測標？",
+    "options": ["圖根點", "界址點", "重力點", "三角點"],
+    "answer": [1, 2, 4],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "航空攝影機之選用，以配合測圖儀器為主，但須受下列哪些限制？",
+    "options": ["鏡頭輻射畸變差應小於0.005毫米，分解力每1毫米應多於30根線", "鏡頭輻射畸變差應小於0.005毫米，分解力每1毫米應多於40根線", "不得使用超寬角攝影機", "城市及高山地區得使用寬角攝影機"],
+    "answer": [2, 3],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "實施戶地航空攝影測量，航空攝影紀錄應包括下列哪些項目？",
+    "options": ["航高、航線及對地速度", "地區名稱", "攝影機型號", "底片總類、號數及比例尺"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "依「地籍測量實施規則」規定，航空攝影像之比例尺，依測圖比例尺之需要規定，下列敘述哪些為正確？",
+    "options": ["圖比例尺為五百分之一者，其像片比例尺應為五千分之一", "圖比例尺為一千分之一者，其像片比例尺應為五千分之一", "圖比例尺為二千五百分之一者，其像片比例尺應為一萬分之一", "圖比例尺為一萬分之一者，其像片比例尺應為二萬分之一"],
+    "answer": [2, 4],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "地籍調查展辦前，應逐一核對重測各宗土地登記資料與地籍圖數化資料，經檢核分析發現下列哪些情況應即提報該管土地登記機關查明處理？",
+    "options": ["有圖無簿", "有簿無圖", "共有宗地持分總額合計不等於一者", "圖、簿面積顯然不符者"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "下列哪些屬於地籍調查通知前之作業準備？",
+    "options": ["確定應辦理筆數", "繪製地籍調查略圖", "製作地籍調查界址查註圖", "詳查應受通知當事人資料"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "地籍調查通知書送達方式，下列哪些為正確？",
+    "options": ["網路送達", "交郵送達", "自行送達", "留置送達"],
+    "answer": [2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "土地所有權人應於地籍調查時到場指界，並在界址分歧點、彎曲點或其他必要之點，自行設立界標，其界標種類依材料區分，下列哪些為正確？",
+    "options": ["土地界標", "水泥界標", "輔助界標", "塑膠界標"],
+    "answer": [2, 4],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "營造界標之選用，下列敘述哪些正確？",
+    "options": ["位於水泥面者埋設鋼釘界標", "位於建築物者埋設鋼釘界標或銅釘界標", "位於泥土地面者埋設水泥界標或塑膠界標", "位於柏油路面者埋設塑膠界標"],
+    "answer": [1, 2, 3],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "測量現況前得詢問土地權利人或現使用人其現使用土地之範圍，供施測參考，或依據下列使用習慣施測？",
+    "options": ["田地高低相差懸殊者，田埂屬於高地", "堤岸概屬於水路範圍內，並以其堤岸下腳為界", "道路有護坡者，以護坡中心為準", "養魚池之毗鄰界址，一般以堤岸中心為界"],
+    "answer": [1, 2, 4],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "界址點施測方法之光線法下列哪些為其適用的場合？",
+    "options": ["簡便易行但有累積誤差的方法", "通視良好且界址點位容易直接觀測之地區", "通視良好且界址點位容易直接量距之地區", "為一般實務上最為常用之方法"],
+    "answer": [2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "已辦理地籍測量之地區，因下列何種原因得重新實施地籍測量？",
+    "options": ["地籍原圖破損", "地籍原圖滅失", "地籍原圖比例尺變更", "其他重大原因"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "地籍圖重測應以段為實施單位，但得以哪些自然界劃定重測區域？",
+    "options": ["田埂", "道路", "鐵路", "分水嶺"],
+    "answer": [2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "下列哪些地區不列入重測範圍？",
+    "options": ["已辦理社區開發且有辦理地籍測量計畫者", "都市計畫樁位坐標資料不全者", "控制點坐標資料不全者", "地籍混亂嚴重，辦理重測確有困難者"],
+    "answer": [1, 2, 4],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "地籍圖重測時，應先檢測下列哪些點位成果？",
+    "options": ["基本控制點", "加密控制點", "圖根點", "重力點"],
+    "answer": [1, 2, 3],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "地籍圖重測結果，直轄市、縣(市)主管機關應視實際情形，依據面積計算表編造下列哪些清冊？",
+    "options": ["土地複丈清冊", "合併清冊", "重測結果清冊", "未登記土地清冊"],
+    "answer": [2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "因重測界址爭議未解決之土地，得就其未涉及界址爭議部分，申請下列哪些土地複丈？",
+    "options": ["土地分割", "土地合併", "土地鑑界", "界址調整或調整地形"],
+    "answer": [1, 4],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "經緯儀設於A點 (XA=29.031m, YA=102.141m)，得AP方位=55°29'19\"，AP距離=29.173m，則XP等於？YP等於？",
+    "options": ["XP=42.496m", "XP=115.606m", "YP=54.910m", "YP=128.020m"],
+    "answer": [1, 4],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "已知XA=20m、YA=19m，XB=29m、YB=136m，設站於A，以B為原方向，測得P點之水平角為 27°36'32\"，AP距離為19.861m，則XP=?, YP=?",
+    "options": ["XP=30.527m", "XP=29.204m", "YP=35.842m", "YP=36.599m"],
+    "answer": [1, 3],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "已知單曲線中線起點(B.C)之坐標 X=11.571m, Y=47.339m，起點切線之方位角為 81°25'36\"，計畫道路寬為24m，地籍分割時，過B.C點橫斷面上道路內側邊界點之縱坐標及橫坐標X為何？",
+    "options": ["縱坐標 Y=59.205m", "縱坐標 Y=35.473m", "橫坐標 X=13.360m", "橫坐標 X=9.782m"],
+    "answer": [2, 3],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "A、D為直線上兩端點，其坐標為：XA=6m, YA=12m；XD=16m, YD=24m，今以直線截點法量得各界址點間之長分別為 AB=5m、BC=5m、CD=5.62m，則XB、YB、XC、YC之坐標為：",
+    "options": ["XB=9.201m", "YB=15.841m", "XC=12.402m", "YC=19.682m"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "戶地測量採數值法測繪者，其圖根點至界址點之位置誤差，市地標準誤差及最大誤差各為多少？",
+    "options": ["標準誤差=2cm", "標準誤差=3cm", "最大誤差=7cm", "最大誤差=6cm"],
+    "answer": [1, 4],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "戶地測量採數值法測繪者，其圖根點至界址點之位置誤差，農地標準誤差及最大誤差各為多少？",
+    "options": ["標準誤差=6cm", "標準誤差=7cm", "最大誤差=20cm", "最大誤差=21cm"],
+    "answer": [2, 4],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "戶地測量採數值法測繪者，其圖根點至界址點之位置誤差，山地標準誤差及最大誤差各為多少？",
+    "options": ["標準誤差=7cm", "標準誤差=15cm", "最大誤差=20cm", "最大誤差=45cm"],
+    "answer": [2, 4],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "已知 XA=267m, YA=369m，XB=16m, YB=366m，∠BAP=54°18'45\"、∠ABP=75°11'51\"，未知點P點位於AB直線之北邊，求XP、YP坐標？",
+    "options": ["XP=80.457m", "XP=86.564m", "YP=622.278m", "YP=111.336m"],
+    "answer": [1, 3],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "已知AB、CD二直線，XA=165549.432m, YA=2570051.238m，XB=165814.322m, YB=2570064.358m，XC=165584.423m, YC=2570012.225m，XD=165537.912m, YD=2570096.561m，求二直線交點P之坐標XP=?, YP=?",
+    "options": ["XP=165563.549m", "XP=165562.549m", "YP=2570052.888m", "YP=2570051.888m"],
+    "answer": [2, 4],
+    "image": ""
+  },
+  {
+    "category": "04：戶地測量",
+    "question": "XA=175761.432m, YA=2571161.238m，XB=175836.522m, YB=2571164.358m 及 BP=70.347m, AP=62.853m，未知點P點位於AB直線之南邊，求XP、YP坐標？",
+    "options": ["XP=175794.613m", "XP=175784.613m", "YP=2571106.857m", "YP=2571107.857m"],
+    "answer": [1, 4],
+    "image": ""
+  },
+{
+    "category": "05：計算面積",
+    "question": "下列何者是同尺制間之單位換算？",
+    "options": ["平方公尺化算為「公畝」", "平方公尺化算為「坪」", "平方公尺化為「甲」", "平方公尺化算「市畝」"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "1坪等於多少平方公尺？",
+    "options": ["121/400", "3025/10000", "1000/3025", "10000/3025"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "已知三角形的兩個角 ∠α, ∠β 及其夾邊 c，求其面積 A，A的公式為：",
+    "options": ["A = (c · sinα · sinβ) / (2 · sin(α+β))", "A = (c · sinα · sinβ) / (2 · cos(α+β))", "A = (c² · sinα · sinβ) / (2 · sin(α+β))", "A = (c² · sinα · sinβ) / (2 · cos(α+β))"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "將面積等分為偶數長條，則總面積為始終兩縱距與偶數縱距之四倍及其餘奇數縱距兩倍之總和乘以各縱距間橫距之三分之一，此法稱為",
+    "options": ["平均縱距計算面積法", "辛普森求積法", "倍經距法", "倍緯距法"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "某宗地經測量後，得其界址點橫縱坐標 A(15m, 15m)、B(7m, 46m)、C(34m, 22m)、D(33m, 8m)，則其面積為多少平方公尺？",
+    "options": ["4.52", "45.23", "452", "44520"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "建物面積應以實量邊長距離距離計算之，其單位為",
+    "options": ["公畝", "公頃", "坪", "平方公尺"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "在五百分一地籍圖上量測一塊土地面積，得其圖上面積為1平方公分，則其實地面積應為多少平方公尺？",
+    "options": ["0.25", "2.5", "25", "250"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "一幅一千分之一地籍原圖所涵蓋面積，等於多少幅五百分之一地籍原圖所涵蓋面積？",
+    "options": ["2", "3", "4", "5"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "於舊地籍圖上量測一塊土地，得其面積為2.9550公頃，惟因圖紙受潮，橫向縮短1%，縱向縮短0.5%，則其正確面積應為多少公頃？",
+    "options": ["2.98", "2.99", "3", "3.1"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "數值法地籍測量計算面積，係採用",
+    "options": ["圖上量距法", "界址點坐標法", "求積儀法", "實量邊長法"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "ABC三角形土地自A頂點做BC邊之垂距長20公尺，P為BC邊上之分割點，設分割出 ΔABP 之面積為100平方公尺，則BP之長應為",
+    "options": ["10公尺", "15公尺", "20公尺", "25公尺"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "應用梯形公式，計算一彎曲之地界與一直線間之面積，已知相隔5公尺之諸支距各為 h1=3.2公尺, h2=10.4公尺, h3=12.8公尺, h4=11.2公尺, h5=4.4公尺，則所求之面積為多少平方公尺？",
+    "options": ["191", "193", "182", "195"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "設兩街道中線之交角為90度，截角底邊長為4公尺，則計算街廓面積時，該街角扣除（截角）面積應為",
+    "options": ["2平方公尺", "4平方公尺", "6平方公尺", "8平方公尺"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "一宗土地分割為數宗土地，則分割後各宗土地面積之總和與原面積之差數，須在 (0.25+0.07√F)√F 值內者，始可依比例配賦，此一公式適用於何類地籍圖？（F為面積，以平方公尺為單位）",
+    "options": ["1/500", "1/1000", "1/600", "1/1200"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "已知不平行四邊形之一對角線 λ，及對角線所分成之兩三角形高線 h1, h2，求其面積 A，A等於：",
+    "options": ["((h1 + h2) / 2) · λ", "((h1 + h2) / 2) · λ²", "((h1 + h2) / 4) · λ", "((h1 + h2) / 4) · λ²"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "宗地之面積，以下列何者為單位？",
+    "options": ["平方公尺", "公頃", "畝", "公畝"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "土地分割後，以坐標讀取儀計算面積時，其面積差不得大於（M為圖比例尺之分母，F為以平方公尺為單位所計算之面積）：",
+    "options": ["0.03M√F", "30.003M√F", "0.003M√F", "0.0003M√F"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "下列何項不是電子求積儀主要構成部分？",
+    "options": ["滾軸", "操作鍵盤", "極臂", "描繪把手"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "以三斜法計算面積時，在圖上量距應量至",
+    "options": ["0.1 mm", "0.2 mm", "0.01 mm", "0.02mm"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "重測結果公告期間，土地所有權人因面積增減提出異議時，應依土地法第幾條規定辦理？",
+    "options": ["第46條", "第46條之一", "第46條之二", "第46條之三"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "下列何項不屬於從圖上用比例尺量讀所產生的誤差？",
+    "options": ["照準誤差", "視覺誤差", "圖紙伸縮誤差", "尺刻劃誤差"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "用測尺丈量距離，若有千分之一以下的誤差，則其面積不免有多少誤差？",
+    "options": ["三千分之一", "二千分之一", "一千分之一", "五聁分之一"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "一宗土地，以其周邊及對角分成諸三角形，量其三邊以求面積者，稱為",
+    "options": ["三斜法", "三線法", "光線法", "支距法"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "已知 FA=6.929m, FB=13.371m, FC=15.760m, FD=17.003m、E=11.325m，∠AFB=34°35'22\"、∠BFC=34°52'31\"、∠CFD=24°40'56\"、∠DFE=25°21'53\"，則多邊形ABCDEF 面積等於多少平方公尺？",
+    "options": ["183.74", "204.86", "104.97", "85.65"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "長100m，寬40m的面積，約等於",
+    "options": ["1210坪", "2420坪", "12100坪", "24200坪"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "房屋建築面積一般多以坪為計價單位，試問一坪等於多少？",
+    "options": ["18平方呎", "3.6平方台尺", "3.305平方公尺", "3.344平方公尺"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "都市地區地價較高之土地，每一號地之面積得計算到",
+    "options": ["平方公尺", "平方公尺以下一位", "平方公尺下以兩位", "平方公尺以下三位"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "於就地籍圖上量算一塊地，得其面積為408.0公頃，為因圖紙受潮橫向伸長1.5%，縱向伸長0.5%，則其正確面積應為多少公頃？",
+    "options": ["398", "400", "403", "404"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "及筆土地登記面積為0.1600公頃，分割為二筆後實測面積各為0.1300及0.0295公頃，則較大一筆經改正後之面積應為",
+    "options": ["0.1305公頃", "0.1304公頃", "0.1303公頃", "0.1302公頃"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "都市地區之宗地面積以何為單位？",
+    "options": ["公畝", "平方公尺", "坪", "公頃"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "四邊形ABCD，各點坐標以公尺為單位，其值為 A(2.0, 4.0)、B(5.0, 7.0)、C(9.0, 1.0)、D(1.0, 1.0)，則四邊形ABCD面積為",
+    "options": ["23.5平方公尺", "25.4平方公尺", "27.0平方公尺", "29.3平方公尺"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "三角形ABC，各點坐標以公尺為單位，其值為 A(100, 100)、B(168, 200)、C(134, 72)，則三角形ABC面積為",
+    "options": ["1663平方公尺", "1326平方公尺", "2652平方公尺", "5304平方公尺"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "三角形土地三邊各為10.2公尺、8.6公尺、7.4公尺，則該宗地之面積為何？",
+    "options": ["30.2平方公尺", "31.2平方公尺", "32.2平方公尺", "33.2平方公尺"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "下列測量哪些須顧及地球曲率者為",
+    "options": ["平面測量", "大地測量", "戶地測量", "道路中心樁測量"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "下列哪些屬於坐標計算面積方法？",
+    "options": ["縱橫坐標法", "倍經距法", "求積儀法", "倍緯距法"],
+    "answer": [1, 2, 4],
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "下列哪些超過平面測量測區範圍大小？",
+    "options": ["96km²", "196km²", "296km²", "396km²"],
+    "answer": [3, 4],
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "長100公尺，寬80公尺的面積約為若干？",
+    "options": ["8000平方公尺", "2450坪", "0.08公頃", "2420坪"],
+    "answer": [1, 4],
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "室內面積100平方公尺相當於多少？",
+    "options": ["3.02坪", "0.01公頃", "30.25坪", "0.10公頃"],
+    "answer": [2, 3],
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "下列土地面積之換算哪些為正確？",
+    "options": ["一公頃等於10000平方公尺", "一公畝等於100平方公尺", "一公頃等於2934坪", "一甲等於0.9699公頃"],
+    "answer": [1, 2, 4],
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "1公頃等於多少？",
+    "options": ["30.25坪", "3025坪", "10000平方公尺", "1000平方公尺"],
+    "answer": [2, 3],
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "在1/500比例尺地圖上兩點長度為10公分，則相應實地距離為",
+    "options": ["0.05公里", "0.5公里", "50公尺", "500公尺"],
+    "answer": [1, 3],
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "三角三邊測量是測量三角形的",
+    "options": ["三個內角", "三邊之方位角", "三邊之邊長", "三邊之天頂距"],
+    "answer": [1, 3],
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "圖根測量採用之電子測距(EDM)，下列哪些可符合其測距精度要求？",
+    "options": ["2mm+5ppm", "5mm+2ppm", "3mm+5ppm", "5mm+5ppm"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "圖解法戶地測量可使用下列哪些方法施測？",
+    "options": ["光線法", "交會法", "半導線法", "支距法"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "今有矩形面積之土地，其長邊及中誤差為 210.85±0.15公尺，另一短邊及中誤差為 140.00±0.10公尺，下列哪些非該面積之中誤差？",
+    "options": ["±29.51平方公尺", "±27.58 平方公尺", "±29.76平方公尺", "±30.25平方公尺"],
+    "answer": [1, 2, 4],
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "一千二百分之一地籍圖上，P、Q二點圖上長為4.04公分，實量長度為48公尺，辦理分割時量得PA之長為12公尺，應畫於圖上之長為",
+    "options": ["1.21 公分", "1.01公分", "10.1公厘", "12.1公厘"],
+    "answer": [2, 3],
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "實量邊長20公尺時，於比例尺1/500 地籍圖上之邊長為",
+    "options": ["40公分", "4公分", "0.4公尺", "0.04公尺"],
+    "answer": [2, 4],
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "有關於獨立建物之平面圖邊界認定，下列敘述哪些錯誤？",
+    "options": ["以牆之中心為界", "以牆之內緣為界", "以牆之外緣為界", "由測量人員認定"],
+    "answer": [1, 2, 4],
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "已知五萬分之一地圖上兩點的距離為12公分，求實地距離為若干？",
+    "options": ["6公里", "6000公尺", "60000公分", "6000公分"],
+    "answer": [1, 2],
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "已知實地距離為8公里，求在五萬分之一地圖上距離為多少？",
+    "options": ["16公分", "0.16公尺", "160公厘", "0.16公里"],
+    "answer": [1, 2, 3],
+    "image": ""
+  },
+  {
+    "category": "05：計算面積",
+    "question": "圖根測量之平差計算，縱橫坐標不應計算至何單位為止？",
+    "options": ["公尺", "公寸", "公分", "公釐"],
+    "answer": [1, 2, 3],
+    "image": ""
+  },
+{
+    "category": "06：製圖",
+    "question": "圖解法戶地測量，對於爭議未定之界址，於繪製地籍原圖時，宜暫用下列何者表示？",
+    "options": ["鉛筆實線", "鉛筆虛線", "黑色實線", "黑色虛線表示之"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "地籍原圖為五百分之一，段接續一覽圖之比例尺縮製為",
+    "options": ["一千分之一", "二千五百分之一", "五千分之一", "萬分之一"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "原圖互相接合，圖上之差，除因圖紙伸縮影響外，其在多少mm以上者，須赴實地檢查更正之？",
+    "options": ["0.2mm", "0.3 mm", "0.4 mm", "0.5 mm"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "鄉(鎮、市、區)一覽圖之比例尺為",
+    "options": ["五千分之一", "一萬分之一", "二萬分之一", "二萬五千分之一，但得依各鄉(鎮、市、區)之大小酌量調整"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "直轄市、縣(市)一覽圖比例尺為",
+    "options": ["一萬分之一", "二萬千分之一", "五萬分之一", "十萬分之一，但得視其面積大小酌量調整之"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "建物平面圖之比例尺以",
+    "options": ["二百分之一", "二百五十分之一", "五百分之一", "千分之一為原則，如有特殊情形得視實際需要增減之"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "地籍圖上段界之符號為",
+    "options": ["-··-··-", "-·-·-", "-+-+-", "-+-+"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "地籍圖上縣市界之符號為",
+    "options": ["-··-··-", "-·-·-", "-+-+-", "-+-+"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "地籍原圖上所繪之褐色界線，係代表",
+    "options": ["逕為分割界線", "界址變更界線", "依舊地籍圖移繪之界線", "新登記土地之界線"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "建物第一次測量，應測繪建物平面圖及下列何者？",
+    "options": ["地形圖", "位置圖", "剖面圖", "地籍圖及其平面圖"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "地籍原圖圖廓繪製應使用",
+    "options": ["黑色一號線", "黑色二號線", "紅色一號線", "紅色二號線"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "實量邊長為20公尺，於比例尺五百分之一圖上之邊長為",
+    "options": ["0.01公尺", "0.02公尺", "0.03公尺", "0.04公尺"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "繪製地籍原圖時，比例尺應書於圖廓外",
+    "options": ["右側中間", "左側中間", "上端中間", "下端中間"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "建物",
+    "options": ["地形圖", "平面圖", "位置圖", "設計圖，以同地段、地籍圖同一比例尺謄繪給於建物測量成果圖左上角或適當位置"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "進度地籍測量之製圖，對於未確定之界址線，暫以",
+    "options": ["黑色實線", "黑色虛線", "紅色實線", "紅色虛線繪製"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "對於土地複丈圖之整理經合併複丈部份，應將不需要之地號用",
+    "options": ["黑色雙線", "紅色雙線", "黑色×線", "紅色X線劃銷之"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "鑑界複丈，其申請人需要鑑定界址結果者，應繪製",
+    "options": ["土地複丈結果圖", "地籍圖", "參考圖", "地段圖"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "建物測量圖以",
+    "options": ["鄉鎮", "村里", "鄰", "段為單位，按建號順序每五十號裝訂一冊，並編列冊數"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "地政事務所不核發土地複丈成果圖之項目為",
+    "options": ["界址鑑定", "土地分割", "土地合併", "土地他項權利之設定"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "地政事務所對土地複丈圖、地籍圖，應每隔多久期間與土地登記簿按地號核對一次，並將核對結果作成記錄存案備查？",
+    "options": ["半年", "一年", "二年", "三年"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "地籍原圖圖廓寬為多少mm？",
+    "options": ["0.1", "0.15", "0.2", "0.25"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "每地段之地籍原圖於戶地測量完竣後，按順序編定地號，其起迄以不超過多少位數為原則？",
+    "options": ["3", "4", "5", "6"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "地籍原圖之圖根點，係用紅色二號以直徑多少繪一圓圈？",
+    "options": ["1mm", "1.5mm", "2mm", "2.5mm"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "地籍圖重測原圖之比例尺採文字表示，以多少毫米仿宋體字書寫？",
+    "options": ["3", "4", "5", "6"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "地籍圖重測原圖上三角點，係用多少毫米之仿宋體字，橫書於點之上方？",
+    "options": ["2", "3", "4", "5"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "地籍藍曬底圖應依地籍原圖同一比例尺複製，但得視需要將地籍原圖為五百分之一者，縮製為",
+    "options": ["一千分之一", "二千五百分之一", "五千分之一", "一萬分之一"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "地圖比例尺為五萬分之一，今量得圖上兩點之距離為10公分，則該兩點地面上之距離應為",
+    "options": ["0.5公里", "5公里", "50公里", "500公里"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "1/400比例尺平面圖，圖上建地長15.0公分，寬為5.0公分，則此建地實際面積為",
+    "options": ["12公頃", "12公畝", "120平方公尺", "33坪"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "地形圖之比例尺中，分母數字愈大，則比例尺愈",
+    "options": ["不一定", "不受影響", "大", "小"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "在1:500之地形圖上，量得兩點間之長度為24.5公分，其實地長度應為",
+    "options": ["122.5公分", "12.25公尺", "122.5公尺", "1.225公里"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "地籍圖上都市計畫樁，如何表示？",
+    "options": ["紅色同心圓圈", "紅色圓圈", "紅色三角形Δ", "紅色十字圓"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "繪製方格網，比例尺為1/2500，每方格圖上長為5公分，則相應實地長為",
+    "options": ["1.25公尺", "12.5公尺", "125公尺", "1250公尺"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "TM2度分帶橫麥卡托投影坐標系統，澎湖地區中央子午線為",
+    "options": ["東經119°", "東經120°", "東經121°", "東經122°"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "地籍原圖比例尺為千分之一時，圖解法之地籍藍曬底圖應縮為多少？",
+    "options": ["1/1000", "1/2500", "1/5000", "1/10000"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "地籍圖上量得之邊長與所註明之實量邊長不符時，應以何者為準？",
+    "options": ["圖上邊長", "實量邊長", "取兩者平均", "取較大者"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "地籍原圖上精密導線點之表示為何？",
+    "options": ["紅色同心雙圓圈", "紅色圓圈○", "黑色同心雙圓圈◎", "黑色圓圈"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "下列哪些屬於「地籍測量實施規則」之製圖項目？",
+    "options": ["地籍圖", "地籍公告圖", "樁位圖", "地形圖"],
+    "answer": [1, 2],
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "依「地籍測量實施規則」規定，繪圖線規格下列哪些項正確？",
+    "options": ["一號線寬0.1毫米", "二號線寬0.2毫米", "一號線寬0.2毫米", "二號線寬0.1毫米"],
+    "answer": [3, 4],
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "依「地籍測量實施規則」規定，地籍原圖精密導線點及圖根點之規定描繪，下列敘述哪些正確？",
+    "options": ["精密導線點：用紅色二號線分別以1.5毫米及2.0毫米之直徑繪同心圓", "精密導線點：用紅色二號線分別以1.0毫米及1.5毫米之直徑繪同心圓", "圖根點：用紅色二號線以直徑1.5毫米繪一圓圈", "圖根點：用紅色二號線以直徑1.0毫米繪一圓圈"],
+    "answer": [1, 3],
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "依「地籍測量實施規則」規定，有關三角點及衛星點之名稱註記，下列敘述哪些正確？",
+    "options": ["用3毫米之宋體書之", "用3毫米之仿宋體書之", "橫書於點之上方或右方", "橫書於點之上方或左方"],
+    "answer": [2, 3],
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "依「地籍測量實施規則」規定，地籍原圖圖廓外，應繪註下列哪些項目？",
+    "options": ["縱2公分、橫2.5公分之接圖表", "圖號、行政區域名稱", "測量開始及完成日期、測量及檢查者姓名並蓋章", "測繪機關"],
+    "answer": [1, 2, 3],
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "依「地籍測量實施規則」規定，圖解法地籍圖數值化作業項目包含下列哪些？",
+    "options": ["圖籍資料清理及整飾", "數值化建檔", "面積計算", "成果檢核與管理"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "依「地籍測量實施規則\"規定，圖幅整合作業項目包含下列哪些？",
+    "options": ["加密控制測量", "樁位測量", "高程測量", "圖根測量"],
+    "answer": [1, 4],
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "依「地籍測量實施規則\"規定，圖解法之地籍藍曬底圖應依地籍原圖同一比例尺複製，以標準圖廓坐標四幅接合為一幅，其縮製原則下列哪些正確？",
+    "options": ["地籍原圖為五百分之一者，縮製為二千五百分之一", "地籍原圖為五百分之一者，縮製為二千分之一", "地籍原圖為一千分之一者，縮製為五千分之一", "地籍原圖為一千分之一者，縮製為三千分之一"],
+    "answer": [1, 3],
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "依「地籍測量實施規則\"規定，段接續一覽圖之比例尺為何？但必要時得變動之",
+    "options": ["地籍原圖為五百分之一者，縮製為五千分之一", "地籍原圖為五百分之一者，縮製為三千分之一", "地籍原圖為一千分之一者，縮製為一萬分之一", "地籍原圖為一千分之一者，縮製為五千分之一"],
+    "answer": [1, 3],
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "依「地籍測量實施規則」規定，數值地籍測量之製圖，以電腦繪製者，下列敘述哪些正確？",
+    "options": ["地籍圖廓及宗地界線以黑色實線繪製", "地籍圖廓及宗地界線以紅色實線繪製", "未確定之界線界址，暫以黑色虛線繪製", "未確定之界線界址，暫以紅色虛線繪製"],
+    "answer": [1, 3],
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "常用之比例尺表示方法有下列哪些？",
+    "options": ["分數法", "文字法", "圖示法", "三角柱法"],
+    "answer": [1, 2, 3],
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "依「地籍測量實施規則\"規定，有關比例尺採文字表示者，下列敘述哪些正確？",
+    "options": ["以5毫米仿宋體書之", "以3毫米仿宋體字書之", "書於圖廓外下端中間", "書於圖廓內下端中間"],
+    "answer": [1, 3],
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "一千分之一地形圖繪製，下列哪些線型顏色為黑色？",
+    "options": ["電信線", "電力線", "田埂", "行政界線"],
+    "answer": [1, 2, 4],
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "等高線種類包含下列哪些？",
+    "options": ["計曲線", "平曲線", "首曲線", "間曲線"],
+    "answer": [1, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "06：製圖",
+    "question": "依「地籍測量實施規則\"規定，下列註記敘述哪些正確？",
+    "options": ["道路、江河、溝渠及湖海等名稱，應按面積之大小用3毫米至5毫米之宋體字書之", "道路、江河、溝渠及湖海等名稱，應按面積之大小用3毫米至5毫米之仿宋體書之", "道路、江河等線狀物體註記，用雁行字列", "道路、江河等線狀物體註記，用屈曲字列"],
+    "answer": [1, 3],
+    "image": ""
+  },
+{
+    "category": "07：土地複丈與建物測量",
+    "question": "土地複丈時，根據地籍副圖描繪每宗土地之地段圖時，除繪明本號地及相鄰土地之界址外，應註明",
+    "options": ["所有權人姓名及身分證號碼", "土地坐落、地號及比例尺", "所有權人姓名及土地面積", "地號、地目、等則及土地面積"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "測繪建物平面圖，對獨立建物之牆壁，以下列何者為界？",
+    "options": ["牆壁厚度中心線", "牆壁之外緣", "牆壁之內緣", "牆壁之二分之一"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "下列何者未涉及原有標示變更？",
+    "options": ["土地分割複丈", "土地合併複丈", "土地鑑界複丈", "土地流失勘測"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "下列何者需向稅捐單位申報土地移轉現值？",
+    "options": ["土地鑑界複丈", "地上權位置勘測", "建物第一次測量", "土地界址調整"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "分割後經界線之標示，用",
+    "options": ["紅色單線", "黑色單線", "紅色雙線", "黑色雙線"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "被合併之地號，用下列何種線劃整理劃銷之？",
+    "options": ["紅色單線", "黑色單線", "紅色雙線", "黑色雙線"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "辦理合併複丈後，應於何時訂正地籍圖籍？",
+    "options": ["於複丈完畢後", "於合併土地面積計算時", "於合併登記之同時", "於完成合併登記後"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "有5筆同地段之1、1-1、3、3-1、5地號相鄰之土地辦理合併，其合併後地號之編定應為",
+    "options": ["1地號", "2地號", "5地號", "1-1地號"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "地上權位置勘測，其位置界線之繪製，用",
+    "options": ["黑色實線", "紅色實線", "黑色虛線", "紅色虛線"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "複丈人員辦理土地複丈前，應先查核下列何項關係人所執土地複丈定期通知書？",
+    "options": ["共有人", "申請人", "他項權利人", "陳情人和關係人"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "依民法第769條至第772條規定，取得土地權利登記請求者，應由何人提出申請？",
+    "options": ["所有權人", "權利人", "管理人", "陳情人"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "申請人申請複丈案件，在原定複丈日期一日前撤回申請者，得於多久期限內請求退還其已繳之土地複丈費？",
+    "options": ["半年", "1年", "3年", "5年"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "地政事務所審查複丈申請案件，發現申請書或應提出之文件與規定不符者，應通知申請人於接到通知書之日起多少日內補正？",
+    "options": ["七日", "十五日", "一個月", "三個月"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "檢察機關行使國家刑罰權，經囑託地政事務所辦理土地複丈案件，其複丈費",
+    "options": ["減半計徵", "正常計徵", "加倍計徵", "免納"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "數值法複丈應以圖根點作為測站，並檢測鄰近之圖根點及界址點，所測得點位間距離與由坐標反算之距離，在農地不得超過若干？（s係邊長，以公尺為單位）",
+    "options": ["0.01公尺√s + 0.08公尺", "0.001公尺√s + 0.08公尺", "0.02公尺√s + 0.08公尺", "0.002公尺√s + 0.08公尺"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "建物座落之基地，因多次分割未予變更，以致實際與登記簿不符，應如何辦理？",
+    "options": ["基地號更正登記", "基地號變更登記", "基地號註記登記", "基地號塗銷登記"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "數值法土地複丈，界址點之水平角應用精於多少讀數之讀經緯儀施測之？",
+    "options": ["一秒", "六秒", "二十秒", "三十秒"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "利害關係人對於其所有土地之相鄰土地鑑界結果有異議時，以其所有土地地號申請鑑界者，依下列何種程序辦理？",
+    "options": ["鑑界", "再鑑界", "鑑界或再鑑界均可", "法院鑑界"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "於一宗土地之特定部分主張取得地上權者，地上權人需如何申請測繪地上權位置圖？",
+    "options": ["不得單獨", "得單獨", "需會同鄰里長", "需取得土地所有權人同意書"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "法院囑託共有物分割案，測量地上使用現況（含地上建物位置），其土地複丈規費應依",
+    "options": ["施測前之土地筆數依土地鑑界收費標準計收", "施測前之土地筆數依土地分割收費標準計收", "施測後之土地筆數依土地鑑界收費標準計收", "施測後之土地筆數依土地分割收費標準計收"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "一宗土地分割為數筆不同大小之土地時，如有差數，經檢核原測量及計算無誤後應如何處理？",
+    "options": ["平均配賦", "分割面積之大小比例配賦", "任意配賦", "不予配賦"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "土地複丈圖應按地段及圖號分年彙集，每多少幅裝訂一冊編列索引永久保存？",
+    "options": ["100幅", "50幅", "40幅", "25幅"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "複丈人員於分割複丈時，應將其界標與附近固定明顯目標之實量距離及界標種類繪註於土地複丈圖上，其分界實量之邊長，應以何顏色註記於土地複丈圖各界線之內側？",
+    "options": ["紅色", "黑色", "藍色", "褐色"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "一農地界址邊長64m，採1/1000比例尺測繪，其圖上邊長與實測邊長之差，不得超過",
+    "options": ["20cm", "24cm", "36cm", "44cm"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "辦理建物測量時，其平面邊長之單位為",
+    "options": ["公寸", "公分", "英吋", "公尺"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "申請核發之建築執照受理建物測量時，下列何者得予以登記？",
+    "options": ["露台", "裝飾牆", "花台", "陽台"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "土地界址調整複丈，申請人未實地埋設界標，並指定面積辦理者，應另收分割費之",
+    "options": ["二分之一", "三分之二", "一倍", "二倍"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "建築同一樓層之夾層至少應超過該層樓地板面積多少，並有獨立出入口與門牌者，得單獨編列建號登記？",
+    "options": ["二分之一", "三分之一", "四分之一", "五分之一或100平方公尺"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "權利人持憑法院判決申請複丈，地政事務所應依法院確定判決及下列何種圖籍所載關係位置辦理？",
+    "options": ["鑑測書圖", "複丈圖", "地籍圖", "平面圖"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "建物測量成果圖，地政事務所之保存期限為？",
+    "options": ["10年", "20年", "30年", "永久"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "下列何項複丈案件，經審查應通知申請人補正？",
+    "options": ["未依規定繳納土地複丈費者", "不屬受理地政事務所管轄者", "依法不應受理者", "有礙查封效力之虞者"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "下列何者不屬特別建物？",
+    "options": ["大廈", "公有公用之建物", "學校", "工廠倉庫"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "受理土地複丈案件應於收件日起多少日內辦峻？",
+    "options": ["10", "20", "5", "15"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "在正常的情形下，建物測量平面圖之比例尺為",
+    "options": ["五百分之一", "二百五十分之一", "一千分之一", "一百分之一或二百分之一"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "局地施行數值法複丈，經檢測圖根點，其所測得點位間之距離與由坐標反算之距離，其差不得超過：（S為邊長，以公尺為單位）",
+    "options": ["0.002公尺√s + 0.04公尺", "0.005公尺√s + 0.04公尺", "0.01公尺√s + 0.08公尺", "0.02公尺√s + 0.08公尺"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "申請建物第一次測量，若建物屬區分所有建物，若依其附下列何項文件無法認定申請人之權利範圍及位置者，應檢具全體起造人分配協定書填具申請書申請？",
+    "options": ["契約書", "使用執照", "戶籍謄本", "門牌編訂證明"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "一宗土地分割為數宗土地，該分割後數宗土地面積之總和，與原面積之差數，須在 (0.10-0.024√F)√F 值內者，始可依比例配賦，此公式適用於何種地籍圖？（F為一筆土地面積，以平方公尺為單位）",
+    "options": ["1/500", "1/600", "1/1000", "1/1200"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "為瞭解土地之抵押情形，應查土地登記簿之",
+    "options": ["權利部", "標示部", "他項權利部", "登記原因欄"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "抄錄土地面積，應查土地登記簿之",
+    "options": ["權利部", "標示部", "他項權利部", "備註欄"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "比例尺1/500圖上0.02公分之誤差，相應於實地之誤差為",
+    "options": ["0.01公尺", "0.02公尺", "0.05公尺", "0.1公尺"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "河川浮覆地，由開發之公地機關事先擬具計畫，報何機關核准後囑託地政機關辦理複丈？",
+    "options": ["直轄市、縣市政府", "內政部", "財政部", "行政院"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "因司法機關判決確定或訴訟上之和解，或調解成立者，由下列何關係人申請分割複丈？",
+    "options": ["利害人", "抵押權人", "權利人", "承租人"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "土地權利人申請分割複丈，申請人不能在分割點自行埋設標者，得檢附分割位置圖說一併申請確定分割界址點，其應加繳多少複丈費？",
+    "options": ["半數", "一倍", "二倍", "三倍"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "複丈案件，發現申請書或提出之文件與規定不符，審查結果以下列那種方式處理？",
+    "options": ["合於複丈", "需要補正", "駁回", "退還複丈費"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "土地複丈涉及原有標示變更者，應於申請複丈時填具",
+    "options": ["所有權", "他項權", "土地標示", "管理權變更登記申請書"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "未登記土地測量，於測量成果核定後，應將測量結果通知書或造冊發給申請人，以供依法申辦",
+    "options": ["總登記", "標示登記", "消滅登記", "預告登記"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "建物測量申請書內，申請人應於建物略圖欄繪製申請",
+    "options": ["平面圖", "位置圖", "地形圖", "示意圖"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "申請建物分割，應填具申請書，檢附下列何項圖說並同戶政事務所編列門牌號證明，及權利証明文件為之？",
+    "options": ["地段圖說", "分割位置圖說", "示意圖說", "地籍圖說"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "建物第一次測量後一般建物，以段或小段為單位，依申請先後，逐棟編列建號，以",
+    "options": ["2", "3", "4", "5 位數為之"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "建物測量圖以段為單位，按建號順序每若干號裝訂一冊？",
+    "options": ["30", "40", "50", "100"],
+    "answer": 3,
+    "image": ""
+  },
+{
+    "category": "07：土地複丈與建物測量",
+    "question": "未登記建物為申辦自用住宅優惠稅率需要，建物所有權人得檢附下列何證明文件，併同土地所有權狀影本及身份證明文件，申辦未登記建物勘測？",
+    "options": ["鄰地証明", "房屋稅繳納証明", "鄰長証明", "水、電繳納証明文件"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "申請建築基地法定空地分割，應檢附直轄市、縣市何主管機關准予分割之證明文件。",
+    "options": ["地政機關", "建築機關", "民政機關", "水利機關"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "抵繳遺產稅申請土地分割時，應檢附稅捐機關或",
+    "options": ["縣市財政機關", "縣市地政機關", "國有財產機關", "內政部核准文件及合法繼承人証明文件"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "（本題刪題）司法機關囑託辦理土地複丈案件，若所定時間短於多少日者，應加倍計徵土地複丈費？",
+    "options": ["十五日", "三十日", "四十五日", "六十日"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "在1/1000比例尺之圖解地籍圖則上進行土地分割，若土地面積為300平方公尺，則在經圖紙伸縮改正後，分割後總面積與原土地總面積之差數，在下列何計算值者，可按各地號土地面積比例配賦？",
+    "options": ["3.173", "4.615", "9.374", "18.747 平方公尺"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "土地複丈成果圖上他項權利位置圖之繪製，下列何者為正確？",
+    "options": ["用紅色虛線繪製他項權利位置界線，用黑色虛線繪製土地經界線", "用紅色實線繪製他項權利位置界線，用黑色實線繪製土地經界線", "用黑色實線繪製他項權利位置界線，用紅色實線繪製土地經界線", "他項權利位置界線與土地界線相同者，用紅色實線繪明之"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "數值法土地複丈時，檢測相距100公尺之兩農地界址點，試問所測點位間之距離與由坐報反算之距離，其差不得超過多少公尺之限制？",
+    "options": ["0.09", "0.18", "0.28", "0.36"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "下列何種情形，不得申請建物第一次測量？",
+    "options": ["無使用執照之建物", "申請人非起造人，但具移轉切約書或證明文件", "區分所有建物，依其使用執照無法確定申請人之權利範圍及位置者", "區分所有建物共同使用部分"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "地政事務所受理法院囑託土地複丈時，下列何者為錯？",
+    "options": ["地政機關所屬人員個人得受託辦理法院勘測不動產或鑑定地界案", "土地界址經權利關係人已向法院提起確認經界之訴者，地政事務所不予受理界址鑑定", "經依法院指定日期前往實地複丈，如因故未予施測，得退還土地複丈費用", "因訴訟需要，法院囑託辦理共有土地分割案，按實測後之筆數，依土地分割複丈費之收費標準計費"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "土地複丈涉及原有標示變更者，應於何時提出土地標示變更登記申請？",
+    "options": ["複丈完成後", "複丈作業中", "複丈申請時", "隨申請人意願"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "為鼓勵土地所有權人或管理人合併土地以利地籍管理，現階段土地合併複丈費用如何計算？",
+    "options": ["免納複丈費", "複丈費減半", "複丈費依標準計算", "複丈費減一成計算"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "分割後之建物，除將其中一棟維持原建號外，其他各棟以該地段之哪一建號之次一號順序編列？",
+    "options": ["最後建號", "中間建號", "最前建號", "隨意選取建號"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "共有土地在下列何種情形下得辦理分割？",
+    "options": ["經共有人過半數之同意", "經共有人合計應有部分超過三分之二以上同意", "經共有人三分之二以上同意", "經共有人全體申請分割"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "重測結果有錯誤，經複丈後，應更正有關簿冊圖卡辦理下列何種登記？",
+    "options": ["土地變更登記", "土地標示變更登記", "土地更正登記", "土地標示更正登記"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "租用基地建築房屋，承租人可向地政機關申請下列何種權利之登記？",
+    "options": ["租賃權", "典權", "地上權", "借地權"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "辦理圖解法土地界址鑑定時，所調製之複丈圖，應使用下列何種圖紙？",
+    "options": ["150磅原圖紙", "180磅原圖紙", "200磅原圖紙", "250磅原圖紙"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "數值法地籍測量，在都市地區界址點位置誤差不得超過",
+    "options": ["標準誤差一公分，最大誤差三公分", "標準誤差二公分，最大誤差六公分", "標準誤差三公分，最大誤差十公分", "標準誤差七公分，最大誤差二十公分"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "建物權利範圍界之認定，下列何者錯誤？",
+    "options": ["柱突出部分以外緣為界", "涼亭以屋簷投影為界", "一樓平台以其牆壁外緣為界", "建物地下室以計入樓地板之牆壁外緣為界"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "土地有下列何者情形，不得申請土地複丈？",
+    "options": ["因主張時效完成，申請時效取得所有權", "因主張時效完成，申請時效取得農育權", "因主張時效完成，申請時效取得不動產役權", "因主張時效完成，申請時效取得地役權"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "辦理複丈時，下列何者不是土地複丈機關應具備之文件？",
+    "options": ["土地複丈定期通知書", "土地面積計算表", "土地複丈成果圖", "他項權利管理簿"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "申請界址調整、調整地形之界址點，申請人應自備界標自行埋設，若申請人不能自行埋設者，得檢附調整後界址點之位置圖說，加繳複丈費之多少，一併申請確定分割點界址？",
+    "options": ["半數", "一倍", "二倍", "三倍"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "現行申請土地鑑界之複丈費用，每單位為新台幣多少元？",
+    "options": ["500", "1000", "2000", "4000"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "申請人於複丈時，應到場會同辦理；申請人屆時不到場或不依規定埋設界標者，視為放棄複丈之申請，已繳土地複丈費應如何處理？",
+    "options": ["全部退還", "退還半數", "退還1/4", "不予退還"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "撤回複丈之申請，應於複丈前以書面向登記機關提出。但鑑界時，有需通知鑑界界址之鄰地所有權人時，應於原定複丈日期幾日前提出？",
+    "options": ["三日", "七日", "十日", "十五日"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "土地複丈完竣後，應發給申請人何項結果？",
+    "options": ["地籍調查表", "土地複丈成果圖", "地籍測量成果圖", "地段圖"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "申請人對於鑑界結果有異議時，得再填具土地複丈申請書敘明理由，向登記機關繳納土地複丈費申請何項作業？",
+    "options": ["檢測異議界址", "申述", "檢核鑑界結果", "再鑑界"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "司法機關囑託之複丈案件，應依司法機關所囑託事項辦理，對土地所有權人",
+    "options": ["發給土地複丈成果圖", "不得發給土地複丈成果圖", "發給地籍測量成果圖", "不發給地籍測量成果圖"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "土地因合併申請複丈者，以下列何種情況為限？",
+    "options": ["應以同一地段", "應以同一地段、地界相連", "應以地界相連、使用性質相同", "應以同一地段、地界相連、使用性質相同"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "地上權之平面位置測繪完畢，登記機關應依土地複丈圖謄繪他項權利位置圖幾份發給他項權利人及土地所有權人？",
+    "options": ["一份", "二份", "三份", "五份"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "土地複丈發現錯誤時，下列何種情形得由登記機關逕行辦理更正？",
+    "options": ["發覺土地登記錯誤", "抄錄錯誤，且有資料可資核對", "自行判定面積計算錯誤", "申請人要求修正"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "土地合併之地號，下列何者錯誤？",
+    "options": ["數宗原地號土地合併為一宗時，應保留在前之原地號", "原地號土地與其分號土地合併時，應保留原地號", "原地號之數宗分號土地合併時，應保留在前之分號", "原地號土地與他原地號之分號土地合併時，應保他原地號之分號"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "鋪圖解法複丈時，如何訂正地籍圖？",
+    "options": ["合併複丈應依土地複丈圖將不需要之部分經界線以紅色雙線劃銷之", "合併複丈應依土地複丈圖將地號以紅色雙線劃銷之，並以紅色註記其新地號", "分割複丈應依土地複丈圖將地號以紅色雙線劃銷之", "分割複丈以黑色移繪其新經界線，並以紅色註記其新地號"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "以數值法辦理土地複丈時，用精於(含)二十秒讀經緯儀施測之，其採方向觀測法者，應觀測多少測回？",
+    "options": ["半測回", "一測回", "二測回", "三測回"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "數值法辦理複丈應以圖根點或界址點作為依據，並應先檢測圖根點及界址點，所測得點位間之距離與由坐標反算之距離，其差在市地不得超過何限制？（S係邊長，以公尺為單位）",
+    "options": ["0.002公尺√S + 0.02公尺", "0.002公尺√S + 0.04公尺", "0.005公尺√S + 0.02公尺", "0.005公尺√S + 0.04公尺"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "以數值法辦理土地複丈時，其界址點位置誤差在農地之限制為何？",
+    "options": ["標準誤差二公分，最大誤差六公分", "標準誤差五公分，最大誤差十五公分", "標準誤差七公分，最大誤差二十公分", "標準誤差十五公分，最大誤差四十五公分"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "申請一宗土地採數值複丈分割為數宗土地，該分割後數宗土地面積之總和，應與原宗土地之面積相符，面積計算如有差數，應如何處理？",
+    "options": ["應先依申請人實地所領界址，埋設界標後施測", "應先套繪地籍圖計算面積，在求取界址坐標", "應先就申請人所予條件，測算該分割點之坐標", "依現勘情形自行決定"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "1/1000 之圖解地籍圖，一宗土地分割為數宗土地，該分割後數宗土地面積之總和，與原面積之差數，須在多少差數下，始可依比例配賦？（F為一筆土地面積，以平方公尺為單位）",
+    "options": ["(0.10-0.02√F)√F 值內者", "(0.10-0.04√F)√F 值內者", "(0.25+0.02√F)√F 值內者", "(0.25+0.04√F)√F 值內者"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "一梯形土地，上底10cm、下底25cm，右側邊長11.18cm、左側邊長14.14cm，若欲將此土地二等分且分割線平行於底邊，試問此分割線之長度約為多少？",
+    "options": ["17cm", "18cm", "19cm", "20cm"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "一梯形土地，四至點坐標(N,E)分別為 A(10,10)、B(20,15)、C(20,30)、D(10,40)，若欲將此土地三等分且分割線平行於底邊，試問離最底編之分割線之長度約為多少m？",
+    "options": ["25", "26", "27", "28"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "三角形土地，四至點坐標(N,E)分別為 A(20,20)、B(40,30)、C(20,30)，若欲將此土地二等分且分割線垂直於AC底邊，試問AC底邊分割點之坐標為何？",
+    "options": ["(20,25)", "(26,20)", "(27,20)", "(28,20)"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "三角形土地，四至點坐標(N,E)分別為 A(20,20)、B(40,30)、C(20,50)，若欲過頂點B將此土地二等分，試問於AC底邊分割點之坐標為若何？",
+    "options": ["(20,30)", "(20,35)", "(20,40)", "(20,45)"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "一宗土地採數值複丈分割為數宗土地，該分割後數宗土地面積之總和，應與原宗土地之面積相符，面積計算如有差數，應如何處理？",
+    "options": ["逕行平均分配之", "依分割面積之大小比例逕行配賦之", "經檢核無誤後，平均分配之", "經檢核無誤後，依分割面積之大小比例配賦之"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "裁數值法分割複丈時，因分割而新增之界址點，不在本宗土地周圍界線上者，應如何辦理？",
+    "options": ["宗地資料檔", "地號界址檔", "界址坐標檔", "土地基本資料檔"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "現行申請土地他項權利位置之測量費，每單位為新台幣多少元？",
+    "options": ["500", "1000", "2000", "4000"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "現行申請地籍圖謄本採電腦列印，每張費用為新台幣多少元？",
+    "options": ["10", "20", "30", "40"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "區分所有建物，區分所有權人申請建物測量得就其專有部分及所屬共有部分之權利",
+    "options": ["共同申請測量", "單單獨申請測量", "僅可申請專有部分", "僅可申請共有部分"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "申請人申請建物測量案件，經通知補正逾期未補正而駁回者，得於多少年內請求退還其已繳建物測量費？",
+    "options": ["1年", "2年", "3年", "5年"],
+    "answer": 4,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "一棟建物跨越二個以上登記機關轄區者，如何辦理建物測量申請？",
+    "options": ["以該建物坐落較廣土地之登記機關受理測量", "以該建物坐落較小土地之登記機關受理測量", "由該建物門牌所在地之登記機關受理測量", "以申請人方便為原則"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "特別建物數棟併編一建號為母號，其各棟建物之棟次以分號編列，為幾位數？",
+    "options": ["1位數", "2位數", "3位數", "4位數"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "建物第一次測量完竣後，登記機關應發給何類圖說？",
+    "options": ["建物測量位置圖", "建物測量平面圖", "建物測量成果圖", "建物測量複丈圖"],
+    "answer": 3,
+    "image": ""
+  },
+{
+    "category": "07：土地複丈與建物測量",
+    "question": "下列何項資料不是建物測量成果圖所包含之內容？",
+    "options": ["建物位置圖", "建物面積計算式", "竣工圖編號", "建物門牌號碼"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "地政事務所法定保存建物竣工平面圖之年限為多少年？",
+    "options": ["5年", "10年", "15年", "永久保存"],
+    "answer": 3,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "現行申請建物平面圖或建物測量成果圖影印本時，每張收費標準為新台幣多少元？",
+    "options": ["10", "15", "20", "40"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "現行建物平面圖轉繪費時，每建號之收費標準為新台幣多少元？",
+    "options": ["100", "200", "400", "800"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "未登記建物，因納稅需要申請勘測時，每單位位置測量費收費標準為新台幣多少元？",
+    "options": ["2000", "4000", "8000", "不得申請"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "圖解法地籍圖數值化成果辦理土地複丈時，其作業方式及精度，依何種規定辦理？",
+    "options": ["圖解法之規定為之", "數值法之規定為之", "國土測繪法規定為之", "地籍重測作業規定為之"],
+    "answer": 1,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "以圖解法地籍圖數值化成果辦理土地複丈檢測界址點時，圖根點至界址點之圖上位置誤差，不得超過多少公厘？",
+    "options": ["0.2", "0.3", "0.4", "0.5"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "以圖解法地籍圖數值化成果辦理土地複丈檢測界址點時，圖上邊長與實量邊長之差，在農地不得超過多少？（S係邊長，以公尺為單位，M係地籍圖比例尺之分母）",
+    "options": ["4公分+1公分√S+0.02公分M", "8公分+2公分√S+0.02公分M", "13公分+4公分√S+0.02公分M", "20公分+6公分√S+0.02公分M"],
+    "answer": 2,
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "下列哪些土地複丈須辦理地籍調查？",
+    "options": ["土地分割", "界址鑑定", "自然增加", "土地浮覆"],
+    "answer": [1, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "地政事務所受理複丈案件，經審查後，下列哪些屬駁回之範疇？",
+    "options": ["不屬受理地政事務所管轄者", "依法不受理者", "逾期未補正者", "未依規定繳納土地複丈費者"],
+    "answer": [1, 2, 3],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "土地有下列哪些情形，得申請土地複丈？",
+    "options": ["因主張時效完成，申請時效取得農育權或不動產役權者", "宗地之部分需設定典權者", "因土地需鑑界者", "依建築法第43條或第44條第1項規定調整地形"],
+    "answer": [1, 2, 3],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "下列哪些人得申請土地複丈？",
+    "options": ["因宗地之部分擬設定地上權、農育權、不動產役權或典權者，由土地所有權人或管理人申請", "地上權之分割者，由地上權人會同土地所有權人或管理人申請", "因建造行為需要鑑界者，得由建造執照起造人會同土地所有權人或管理人申請", "依法令規定得由地政機關逕為測量者"],
+    "answer": [2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "登記機關需包含準備下列哪些文件，據以辦理複丈？",
+    "options": ["土地複丈地籍調查表", "土地面積計算表", "土地複丈圖", "他項權利位置圖"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "未依規定繳納土地複丈費者，申請人於接到通知書之日起多久期限內均可補正？",
+    "options": ["10日", "15日", "20日", "30日"],
+    "answer": [1, 2],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "土地複丈時，有下列哪些情形者應辦理地籍調查？",
+    "options": ["因自然增加者", "因浮覆、坍沒者", "因申請農育權者", "因主張時效取得所有權而複丈者"],
+    "answer": [1, 2, 4],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "土地複丈調查表若申請人未於當場簽名或蓋章時，應如何處理？",
+    "options": ["案件作廢", "得請申請人於三日內至登記機關補簽名或蓋章", "逾期未簽名或蓋章者，應載明事由，不發給之土地複丈成果圖並加註僅供參考，其所附土地登記申請書件予以退還", "逾期未簽名或蓋章者，應載明事由，發給之土地複丈成果圖並加註僅供參考，其所附土地登記申請書件予以退還"],
+    "answer": [2, 4],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "下列哪些類型之土地複丈，免納土地複丈費？",
+    "options": ["調整地形者", "合併土地者", "各級法院行使國家刑罰權囑託辦理者", "檢察機關行使國家刑罰權囑託辦理者"],
+    "answer": [2, 4],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "辦理土地鑑界作業，下列敘述哪些正確？",
+    "options": ["複丈人員實地測定所需鑑定之界址點位置後，應自行埋設界標", "申請人對於鑑界結果有異議者，應向司法機關訴請再鑑界", "鑑界、再鑑界測定之界址點應由申請人及到場之關係人當場認定，並在土地複丈圖上簽名或蓋章", "申請人對於鑑界結果有異議時，得再填具土地複丈申請書敘明理由，向登記機關繳納土地複丈費申請再鑑界"],
+    "answer": [3, 4],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "土地因合併申請複丈時，土地之所有權人不同或設定有抵押權、典權、耕作權等他項權利者，應依下列何規定檢附相關文件？",
+    "options": ["所有權人不同時，應檢附全體2/3所有權人之協議書", "設定有抵押權時，應檢附土地所有權人與抵押權人之協議書", "設定有典權或耕作權時，應檢附該他項權利人之同意書", "所有權人不同時，應檢附全體所有權人之協議書"],
+    "answer": [2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "地上權、農育權、不動產役權或典權之平面位置測繪，應如何辦理？",
+    "options": ["同一他項權利人在數宗土地之一部分設定同一性質之他項權利者，應儘量測繪在同一幅土地複丈圖內", "一宗土地同時申請設定二以上同一性質之他項權利者，應在同一幅土地複丈圖內分別測繪他項權利位置", "因地上權分割申請複丈者，應於登記完畢後，在原土地複丈圖上註明地上權範圍變更登記日期及權利登記先後次序", "他項權利位置圖，用黑色實線繪製他項權利位置界線，並用紅色實線繪明土地經界線"],
+    "answer": [1, 2, 3],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "土地複丈後之地號，應如何編定？",
+    "options": ["原地號分割時，除將其中一宗維持原地號外，其他各宗以分號順序編列之", "原地號之數宗分號土地合併時，應保留面積較大土地之分號", "數宗原地號土地合併為一宗時，應保留面積最大之原地號", "原地號土地與他原地號之分號土地合併時，應保留原地號"],
+    "answer": [1, 4],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "登記機關對土地複丈圖、地籍圖之核對，下列敘述哪些錯誤？",
+    "options": ["應每年與土地登記簿按地號核對一次", "應每二年與土地登記簿按地號核對一次", "應每三年與土地登記簿按地號核對一次", "應每五年與土地登記簿按地號核對一次"],
+    "answer": [2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "採圖解法複丈者，分割土地面積總和如有差數，經將圖紙伸縮成數除去後，其增減在下列公式計算值以下者，應按各地號土地面積比例配賦應如何辦理？（F為土地面積，以平方公尺為單位）",
+    "options": ["1/500比例尺地籍圖：(0.10+0.024√F)√F", "1/600比例尺地籍圖：(0.20+0.044√F)√F", "1/1,200 比例尺地籍圖：(0.25+0.074√F)√F", "1/3,000 比例尺地籍圖：(0.80+0.164√F)√F"],
+    "answer": [1, 3],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "採圖解法複丈者，土地複丈圖應如何整理？",
+    "options": ["變更後之經界線用黑色標示之，並將其原經界線用紅色x線劃銷之", "變更後地號用黑色標示之，原地號用紅色雙線劃銷之", "合併後再分割者，其分割之經界線與前因合併而劃銷之經界線一致時，應於原經界線上紅色x線處加繪紅色=，以示將x線劃銷之", "變更後之經界線用紅色標示之，並將其原經界線用紅色x線劃銷之"],
+    "answer": [2, 4],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "採圖解法複丈者，分割複丈後應如何訂正地籍圖？",
+    "options": ["應依土地複丈圖將地號以紅色雙線劃銷之", "以紅色移繪其新經界線", "以黑色註記其新地號", "不需要之部分經界線以紅色X線劃銷之"],
+    "answer": [1, 2, 4],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "採圖解法複丈者，分割複丈後一宗土地跨二幅以上地籍圖時，應如何訂正地籍圖？",
+    "options": ["面積較大部分之地號以紅色註記之", "面積較大部分之地號以黑色註記之", "面積較小部分之地號以紅色註記之", "面積較小部分之地號以黑色註記之"],
+    "answer": [2, 3],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "複丈應以圖根點或界址點作為依據，並應先檢測圖根點及界址點，所測得點位間之距離與由坐標反算之距離，其差不得超過下列限制？",
+    "options": ["市地：0.005公尺√S + 0.04公尺", "市地：0.005公尺√S + 0.05公尺", "農地：0.010公尺√S + 0.05公尺", "農地：0.010公尺√S + 0.08公尺"],
+    "answer": [1, 4],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "辦理數值法土地複丈時，界址點之水平角如何觀測？",
+    "options": ["用精於(含)二十秒讀經緯儀施測之", "其採方向觀測法者，應正倒鏡各觀測二次", "採複測法者應觀測二倍角", "水平角觀測手簿記至秒止"],
+    "answer": [1, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "辦理數值法土地複丈時，得採用下列哪些方法施測？",
+    "options": ["支距法", "交會法", "GPS 虛擬動態法", "GPS 即時動態法"],
+    "answer": [1, 2],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "辦理數值法複丈時，其面積如何計算？",
+    "options": ["宗地之面積，以公頃為單位，算至平方公尺為止，平方公尺以下四捨五入", "宗地之面積，以平方公尺為單位，算至平方公尺為止，平方公尺以下四捨五入", "於都市地區或其他地價較高之土地，得算至平方公尺以下二位，二位以下四捨五入", "於都市地區或其他地價較高之土地，以平方毫米為單位得算至以下二位，二位以下四捨五入"],
+    "answer": [2, 3],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "土地複丈後，一宗土地分割為數宗土地，該分割後數宗土地面積之總和，應與原宗土地之面積相符，面積計算如有差數，應符合下列哪些規定？",
+    "options": ["採數值法土地複丈，應就原測量及計算作必要之檢核，經檢核無誤後，依分割面積之大小比例配賦之", "採圖解法土地複丈，1/500比例尺地籍圖其增減在(0.10-0.024√F)√F，應按各地號土地面積比例配賦", "採圖解法土地複丈，經將圖紙伸縮成數除去後，1/1000比例尺地籍圖其增減在(0.10+0.044√F)√F，應按各地號土地面積比例配賦", "採圖解法土地複丈，1/500 比例尺地籍圖其增減在(0.10-0.014√F)√F，應按各地號土地面積比例配賦"],
+    "answer": [1, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "數值法土地複丈之成果依法登記後，登記機關應修正下列哪些資料檔？",
+    "options": ["界址坐標檔", "控制點檔", "地號界址檔", "宗地資料檔"],
+    "answer": [1, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "下列哪些符合申請建物測量之條件？",
+    "options": ["依法令應請領使用執照之建物，無使用執照者", "實施建築管理前建造完成無使用執照之建物，具有門牌號碼", "具有繳交水電費證明者", "具有建物使用執照者"],
+    "answer": [2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "登記機關受理建物測量申請案件且經審查准予測量，並排定測量日期，交付通知書予申請人後，下列何項為正確？",
+    "options": ["申請人於測量時，應到場會同辦理；屆時不到場者，視為放棄測量之申請，已繳建物測量費退還", "原定測量日期，因風雨或其他事故，致不能實施測量時，登記機關應另定測量日期通知申請人", "申請人可於測量前以書面向登記機關提出撤回建物測量之申請", "依排定時間到場，發現有障礙物致無法實施測量時，可由測量人員逕行排除後施測"],
+    "answer": [2, 3],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "建物測量成果圖包含下列哪些項目資料？",
+    "options": ["建物位置圖", "建物平面圖", "面積計算式", "使用執照號碼"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "下列哪些項目符合「地籍測量實施規則」建物測量作業之規定？",
+    "options": ["建物位置圖，以地籍圖同一比例尺謄繪", "建物測量成果圖以段為單位，按建號順序每五十號或一百號裝訂一冊，並編列冊數", "竣工平面圖載有陽台、屋簷，以其外緣為界，並以主建物辦理測量", "測繪建物平面圖註明邊長，以公尺為單位，量至公分為止"],
+    "answer": [1, 2, 4],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "建物第一次測量可採用下列哪些作業方式完成？",
+    "options": ["依建築平面圖轉繪", "實地測量", "依建物套繪圖轉繪", "依使用執照竣工平面圖轉繪"],
+    "answer": [2, 4],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "區分所有建物之共有部分，應如何處理？",
+    "options": ["除法規另有規定外，按其設置目的之約定情形，分別合併，另編建號予以勘測", "按其使用性質之約定情形，分別獨立編定建號予以勘測", "建物共有部分之建物測量成果圖應註明共有部分各項目內容", "區分所有建物之地下層或屋頂突出物等，依主管建築機關備查之圖說標示為專有部分，並已由戶政機關編列門牌或核發其所在地址證明者，得單獨編列建號，予以測量"],
+    "answer": [1, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "在同一建築基地範圍內，下列哪些為特別建物？",
+    "options": ["學校", "名勝史蹟之建物", "公有公用之建物", "祠、廟、寺院或教堂"],
+    "answer": [1, 2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "建築改良物之建號如何編定？",
+    "options": ["一棟建物跨越二個以上登記機關轄區者，由該建物坐落較廣地段編其建號", "一棟建物跨越二個以上登記機關轄區者，由該建物門牌所在地之登記機關受理測量，編列建號", "在同一登記機關轄區內之一棟建物，位於二個以上地段者，任意選擇其一地段編其建號", "在同一登記機關轄區內之一棟建物，位於二個以上地段者，以其坐落較廣地段編其建號"],
+    "answer": [2, 4],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "一三角形坵塊，坐報為A(100,100)、B(150,100)、C(130,150)，欲進行土地等分垂直分割，分割線DE垂直於AB邊，下列敘述哪些正確？",
+    "options": ["分割後土地面積為1250平方公尺", "分割垂足點D坐報為(127.64,100)", "分割線高度為55.9公尺", "分割點邊長之長度比為0.45"],
+    "answer": [2, 3, 4],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "一梯形土地上底長度20公尺，下底長度40公尺，高20公尺，若欲將此筆土地二等分，且分割線平行於底邊，下列敘述哪些正確？",
+    "options": ["分割後土地面積為600平方公尺", "分割線長度為31.62公尺", "分割線長度為33.25公尺", "分割點邊長之長度比為0.42"],
+    "answer": [2, 4],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "土地複丈費如何收取？",
+    "options": ["土地分割複丈費按分割後筆數計算，每單位以新臺幣800元計收", "土地界址鑑定費每單位以新臺幣2000元計收", "調整地形複丈費每單位以新臺幣800元計收", "土地合併複丈費每單位以新臺幣800元計收"],
+    "answer": [1, 3],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "土地複丈費如何收取？",
+    "options": ["土地他項權利位置之測量費每單位以新臺幣4000元計收", "未登記土地測量費每單位以新臺幣4000元計收", "土地地目變更勘查費每單位以新臺幣400元計收", "地籍圖謄本採電腦列印以每張新臺幣40元計收"],
+    "answer": [1, 2, 3],
+    "image": ""
+  },
+  {
+    "category": "07：土地複丈與建物測量",
+    "question": "土地與建物複丈時，所指之單位下列敘述哪些正確？",
+    "options": ["土地複丈以每筆每公頃為計收單位，不足一公頃者，以一公頃計", "土地複丈超過一公頃者，每增加半公頃增收半數，增加不足半公頃者，以半公頃計", "建物平面圖測量費以每建號每100平方公尺為計收單位，不足100平方公尺者，以100平方公尺計", "建物位置圖測量費以整棟建築改良物為一計費單位"],
+    "answer": [1, 2, 4],
+    "image": ""
+  }
+
+    ];
+
+    let currentQuizPool = [];
+    let currentIdx = 0;
+    let userScore = 0;        
+    let maxPossibleScore = 0; 
+    let correctSingle = 0;    
+    let correctMulti = 0;     
+    let totalSingleSelected = 0; 
+    let totalMultiSelected = 0;  
+
+    let selectedOptions = []; 
+
+    function shuffle(array) {
+        let currentIndex = array.length, randomIndex;
+        while (currentIndex != 0) {
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+            [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+        }
+        return array;
+    }
+
+    // --- 主題切換功能 ---
+    function toggleTheme() {
+        const body = document.body;
+        body.classList.toggle('normal-mode');
+        const isNormal = body.classList.contains('normal-mode');
+        localStorage.setItem('theme', isNormal ? 'normal' : 'eye-care');
+        updateThemeBtn(isNormal);
+    }
+
+    function updateThemeBtn(isNormal) {
+        const btn = document.getElementById('theme-btn');
+        btn.innerHTML = isNormal ? "💡 切換為護眼模式" : "☀️ 切換為一般模式";
+    }
+
+    window.onload = () => {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'normal') {
+            document.body.classList.add('normal-mode');
+            updateThemeBtn(true);
+        } else {
+            updateThemeBtn(false);
+        }
+    };
+
+    function goHome() {
+        document.getElementById('home-screen').classList.remove('hidden');
+        document.getElementById('quiz-screen').classList.add('hidden');
+        document.getElementById('bank-category-screen').classList.add('hidden');
+        document.getElementById('bank-view-screen').classList.add('hidden');
+    }
+
+    // --- 混合測驗抽題與排版邏輯 ---
+    function initQuiz() {
+        if (allQuestions.length === 0) return alert("題庫暫無資料");
+        document.getElementById('home-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.add('hidden');
+        
+        // 顯示測驗內容與備註
+        document.getElementById('quiz-content').classList.remove('hidden');
+        document.getElementById('quiz-legend').classList.remove('hidden'); 
+        document.getElementById('quiz-screen').classList.remove('hidden');
+        
+        const singlePool = allQuestions.filter(q => !Array.isArray(q.answer));
+        const multiPool = allQuestions.filter(q => Array.isArray(q.answer));
+
+        const selectedSingle = shuffle([...singlePool]).slice(0, 60);
+        const selectedMulti = shuffle([...multiPool]).slice(0, 20);
+
+        currentQuizPool = [...selectedSingle, ...selectedMulti];
+        
+        currentIdx = 0;
+        userScore = 0;
+        correctSingle = 0;
+        correctMulti = 0;
+        totalSingleSelected = selectedSingle.length;
+        totalMultiSelected = selectedMulti.length;
+        maxPossibleScore = (totalSingleSelected * 1) + (totalMultiSelected * 2);
+
+        loadQuizQuestion();
+    }
+
+    function loadQuizQuestion() {
+        const q = currentQuizPool[currentIdx];
+        const isMultiple = Array.isArray(q.answer);
+        
+        document.getElementById('quiz-progress').innerText = `第 ${currentIdx + 1} 題 / 共 ${currentQuizPool.length} 題`;
+        document.getElementById('question-type-badge').innerText = isMultiple ? "複選題 (2分)" : "單選題 (1分)";
+        document.getElementById('q-text').innerText = q.question;
+        
+        document.getElementById('next-btn').classList.add('hidden');
+        if (isMultiple) {
+            document.getElementById('submit-btn').classList.remove('hidden');
+        } else {
+            document.getElementById('submit-btn').classList.add('hidden');
+        }
+        
+        const imgArea = document.getElementById('q-image-area');
+        const imgTag = document.getElementById('q-image-src');
+        if (q.image) {
+            imgTag.src = q.image;
+            imgArea.classList.remove('hidden');
+        } else {
+            imgArea.classList.add('hidden');
+        }
+
+        const optionsDiv = document.getElementById('q-options');
+        optionsDiv.innerHTML = '';
+        selectedOptions = [];
+
+        const optionObjects = q.options.map((opt, i) => ({
+            text: opt,
+            originalIndex: i + 1
+        }));
+        shuffle(optionObjects);
+
+        optionObjects.forEach((optObj, localIdx) => {
+            const btn = document.createElement('button');
+            btn.className = 'option';
+            btn.innerText = optObj.text;
+            btn.dataset.originalIndex = optObj.originalIndex;
+
+            btn.onclick = () => {
+                if (!isMultiple) {
+                    const allBtns = optionsDiv.querySelectorAll('.option');
+                    allBtns.forEach(b => b.onclick = null);
+                    
+                    if (optObj.originalIndex === q.answer) {
+                        // 單選答對
+                        btn.classList.add('correct');
+                        btn.innerText += " ✅";
+                        userScore += 1;
+                        correctSingle++;
+                    } else {
+                        // 單選答錯
+                        btn.classList.add('wrong');
+                        btn.innerText += " ❌";
+                        // 標示出原本正確的答案是哪一個
+                        optionObjects.forEach((item, idx) => {
+                            if (item.originalIndex === q.answer) {
+                                allBtns[idx].classList.add('missed');
+                                allBtns[idx].innerText += " ⭕";
+                            }
+                        });
+                    }
+                    document.getElementById('next-btn').classList.remove('hidden');
+                } else {
+                    // 複選選取切換
+                    if (btn.classList.contains('selected')) {
+                        btn.classList.remove('selected');
+                        selectedOptions = selectedOptions.filter(idx => idx !== localIdx);
+                    } else {
+                        btn.classList.add('selected');
+                        selectedOptions.push(localIdx);
+                    }
+                }
+            };
+            optionsDiv.appendChild(btn);
+        });
+    }
+
+    function submitAnswer() {
+        if (selectedOptions.length === 0) {
+            alert("請至少選擇一個選項！");
+            return;
+        }
+
+        const q = currentQuizPool[currentIdx];
+        const optionsDiv = document.getElementById('q-options');
+        const allBtns = optionsDiv.querySelectorAll('.option');
+        
+        // 鎖定按鈕，防止重複點擊
+        allBtns.forEach(b => b.onclick = null); 
+        document.getElementById('submit-btn').classList.add('hidden');
+        document.getElementById('next-btn').classList.remove('hidden');
+
+        // 收集使用者的答案
+        let userAnswers = [];
+        allBtns.forEach(btn => {
+            if (btn.classList.contains('selected')) {
+                userAnswers.push(parseInt(btn.dataset.originalIndex));
+            }
+        });
+
+        // 陣列排序後比對是否完全正確
+        userAnswers.sort((a, b) => a - b);
+        const correctAnswers = [...q.answer].sort((a, b) => a - b);
+        const isCorrect = JSON.stringify(userAnswers) === JSON.stringify(correctAnswers);
+
+        if (isCorrect) {
+            userScore += 2;
+            correctMulti++;
+        }
+
+        // 重新渲染每一個選項的對錯狀態
+        allBtns.forEach(btn => {
+            const origIdx = parseInt(btn.dataset.originalIndex);
+            const isTargetAns = correctAnswers.includes(origIdx); 
+            const userChecked = userAnswers.includes(origIdx);    
+
+            // 清除預設的選取底色
+            btn.classList.remove('selected');
+
+            if (isTargetAns && userChecked) {
+                // 正確且有選
+                btn.classList.add('correct');
+                btn.innerText += " ✅";
+            } else if (isTargetAns && !userChecked) {
+                // 正確但漏選
+                btn.classList.add('missed');
+                btn.innerText += " ⭕";
+            } else if (!isTargetAns && userChecked) {
+                // 錯誤但多選了
+                btn.classList.add('wrong');
+                btn.innerText += " ❌";
+            }
+        });
+    }
+
+    function loadNextQuestion() {
+        currentIdx++;
+        if (currentIdx < currentQuizPool.length) {
+            loadQuizQuestion();
+        } else {
+            // 隱藏測驗內容與備註，顯示結果
+            document.getElementById('quiz-content').classList.add('hidden');
+            document.getElementById('next-btn').classList.add('hidden');
+            document.getElementById('quiz-legend').classList.add('hidden'); 
+            document.getElementById('result-screen').classList.remove('hidden');
+            
+            const finalScore = Math.round((userScore / maxPossibleScore) * 100);
+            document.getElementById('score-text').innerText = `${finalScore} 分`;
+            document.getElementById('score-detail').innerText = `單選答對: ${correctSingle}/${totalSingleSelected} 題 | 複選答對: ${correctMulti}/${totalMultiSelected} 題`;
+        }
+    }
+
+    // --- 題庫瀏覽模式 ---
+    let bankPool = [];
+    let bankIdx = 0;
+
+    function showBankCategories() {
+        document.getElementById('home-screen').classList.add('hidden');
+        document.getElementById('bank-category-screen').classList.remove('hidden');
+        document.getElementById('bank-view-screen').classList.add('hidden');
+        
+        const categories = [...new Set(allQuestions.map(q => q.category))];
+        const listDiv = document.getElementById('category-list');
+        listDiv.innerHTML = '';
+        
+        categories.forEach(cat => {
+            const btn = document.createElement('button');
+            btn.className = 'option';
+            btn.style.textAlign = 'center';
+            btn.style.borderColor = 'var(--primary-color)';
+            btn.style.color = 'var(--success-color)';
+            btn.style.fontWeight = 'bold';
+            btn.innerText = cat;
+            btn.onclick = () => startBankView(cat);
+            listDiv.appendChild(btn);
+        });
+    }
+
+    function startBankView(cat) {
+        bankPool = allQuestions.filter(q => q.category === cat);
+        bankIdx = 0;
+        document.getElementById('bank-category-screen').classList.add('hidden');
+        document.getElementById('bank-view-screen').classList.remove('hidden');
+        renderBankItem();
+    }
+
+    function renderBankItem() {
+        const q = bankPool[bankIdx];
+        const isMultiple = Array.isArray(q.answer);
+        
+        document.getElementById('bank-progress').innerText = `${q.category} - ${isMultiple ? "複選(2分)" : "單選(1分)"} (${bankIdx + 1}/${bankPool.length})`;
+        const content = document.getElementById('bank-content');
+        
+        let imgHTML = '';
+        if (q.image) {
+            imgHTML = `<div class="q-image-container"><img src="${q.image}"></div>`;
+        }
+        
+        content.innerHTML = `${imgHTML}<div class="question-text">${q.question}</div>`;
+        
+        q.options.forEach((optText, i) => {
+            const isAns = isMultiple ? q.answer.includes(i + 1) : (i + 1 === q.answer);
+            content.innerHTML += `<div class="option ${isAns ? 'correct' : ''}">${optText} ${isAns ? '✅' : ''}</div>`;
+        });
+    }
+
+    function moveBank(step) {
+        bankIdx += step;
+        if (bankIdx < 0) bankIdx = 0;
+        else if (bankIdx >= bankPool.length) bankIdx = bankPool.length - 1;
+        renderBankItem();
+    }
+</script>
+
+</body>
+</html>
